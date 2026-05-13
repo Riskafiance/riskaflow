@@ -1,38 +1,64 @@
-.App {
-  text-align: center;
+/* Custom Scrollbar for a Professional Look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Base Layout Classes */
+.main-content-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+
+@media (max-width: 1024px) {
+  /* Ensure the sidebar overlay doesn't block clicks when hidden */
+  .mobile-sidebar-hidden {
+    display: none !important;
+  }
+
+  /* Make metrics stack on top of each other on phones */
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Adjust the main dashboard padding for smaller screens */
+  .dashboard-wrapper {
+    padding: 16px !important;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Utility to hide elements specifically on mobile */
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none !important;
   }
-  to {
-    transform: rotate(360deg);
+  
+  /* Ensure tables don't squish; they should scroll horizontally */
+  .table-container {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

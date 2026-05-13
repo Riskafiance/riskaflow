@@ -5,9 +5,50 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* --- MOBILE RESPONSIVE FIXES --- */
+
+/* Smooth fade-in for page transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Professional touch targets and layout for phones */
+@media (max-width: 1024px) {
+  /* Ensure the main content doesn't get squished */
+  div[style*="padding: 40px 50px"] {
+    padding: 20px 16px !important;
+  }
+
+  /* Make buttons easier to tap with thumbs */
+  button {
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  /* Adjust typography for smaller screens */
+  h2 {
+    font-size: 24px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Prevent tables from breaking the layout - allows side scrolling */
+  div[style*="overflowX: auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  .CardWrapper {
+    padding: 16px !important;
+  }
 }

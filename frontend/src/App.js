@@ -192,7 +192,7 @@ function App() {
       <div style={{ backgroundColor: '#023c34', padding: '12px 24px', display: 'flex', alignItems: 'center', zIndex: 50, position: 'relative', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '250px' }}>
           <img 
-            src="/logo.PNG" 
+            src="/logo.png" 
             alt="Riska's Finance Logo" 
             style={{ width: '40px', height: '40px', objectFit: 'contain', backgroundColor: 'white', borderRadius: '6px', padding: '4px' }} 
             onError={(e) => { e.target.style.display = 'none'; }} 

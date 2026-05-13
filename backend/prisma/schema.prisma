@@ -64,7 +64,7 @@ model Customer {
 
 model Invoice {
   id            String   @id @default(uuid())
-  invoiceNumber String   @unique
+  invoiceNumber String   // 🔥 FIX: Removed @unique so different users can both have an "INV-001"
   dueDate       DateTime
   status        String   @default("unpaid")
   subTotal      Float    @default(0)

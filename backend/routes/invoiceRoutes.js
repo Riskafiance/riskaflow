@@ -16,6 +16,16 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// 🔥 NEW: Helper function to generate the unique 'RF-XXXXXX' Firm Code
+const generateFlowCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'RF-';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 // GET all invoices
 router.get('/', async (req, res) => {
   try {
@@ -54,7 +64,11 @@ router.post('/', async (req, res) => {
     let user = await prisma.user.findUnique({ where: { email: userEmail } });
     if (!user) {
       user = await prisma.user.create({
-        data: { email: userEmail, googleId: userUid }
+        data: { 
+          email: userEmail, 
+          googleId: userUid,
+          flowCode: generateFlowCode() // 🔥 THE FIX: Generates the RF Code for new users
+        }
       });
     }
 

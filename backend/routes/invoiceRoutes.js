@@ -16,16 +16,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 🔥 NEW: Helper function to generate the unique 'RF-XXXXXX' Firm Code
-const generateFlowCode = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'RF-';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
-
 // GET all invoices
 router.get('/', async (req, res) => {
   try {
@@ -64,11 +54,7 @@ router.post('/', async (req, res) => {
     let user = await prisma.user.findUnique({ where: { email: userEmail } });
     if (!user) {
       user = await prisma.user.create({
-        data: { 
-          email: userEmail, 
-          googleId: userUid,
-          flowCode: generateFlowCode() // 🔥 THE FIX: Generates the RF Code for new users
-        }
+        data: { email: userEmail, googleId: userUid }
       });
     }
 
@@ -198,7 +184,7 @@ router.get('/:id/pdf', async (req, res) => {
   }
 });
 
-// 🔥 NEW: Generate a Stripe Link for In-Person Payments (Method 2)
+// 🔥 Generate a Stripe Link for In-Person Payments (Method 2)
 router.post('/:id/checkout-link', async (req, res) => {
   try {
     const invoice = await prisma.invoice.findUnique({
@@ -207,6 +193,11 @@ router.post('/:id/checkout-link', async (req, res) => {
     });
 
     if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+    // 🔥 SAAS SECURITY FIX: Block checkout if the user has not connected Stripe
+    if (!invoice.user?.stripeAccountId) {
+      return res.status(403).json({ error: "You must connect a bank account in Settings before accepting online payments." });
+    }
 
     const bizName = invoice.user?.businessName || (invoice.user?.firstName ? `${invoice.user.firstName} ${invoice.user.lastName}` : "Business Owner");
 
@@ -228,14 +219,10 @@ router.post('/:id/checkout-link', async (req, res) => {
       cancel_url: `http://localhost:3000/`,
     };
 
-    let session;
-    if (invoice.user?.stripeAccountId) {
-      session = await stripe.checkout.sessions.create(checkoutParams, {
-        stripeAccount: invoice.user.stripeAccountId
-      });
-    } else {
-      session = await stripe.checkout.sessions.create(checkoutParams);
-    }
+    // 🔥 Safe to create session directly on the connected account now
+    const session = await stripe.checkout.sessions.create(checkoutParams, {
+      stripeAccount: invoice.user.stripeAccountId
+    });
 
     res.json({ url: session.url });
   } catch (error) {
@@ -264,9 +251,12 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
 
     let finalPaymentUrl = "";
     
+    // User provided a manual payment link (like Venmo, Zelle, etc.)
     if (paymentLink && paymentLink.trim() !== "") {
       finalPaymentUrl = paymentLink;
-    } else {
+    } 
+    // 🔥 SAAS SECURITY FIX: Only auto-generate the Stripe checkout if they actually have a Stripe account
+    else if (invoice.user?.stripeAccountId) {
       try {
         const checkoutParams = {
           payment_method_types: ['card'],
@@ -286,14 +276,10 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
           cancel_url: `http://localhost:3000/`,
         };
 
-        let session;
-        if (invoice.user?.stripeAccountId) {
-          session = await stripe.checkout.sessions.create(checkoutParams, {
-            stripeAccount: invoice.user.stripeAccountId
-          });
-        } else {
-          session = await stripe.checkout.sessions.create(checkoutParams);
-        }
+        const session = await stripe.checkout.sessions.create(checkoutParams, {
+          stripeAccount: invoice.user.stripeAccountId
+        });
+        
         finalPaymentUrl = session.url;
       } catch (stripeError) {
         console.error("Stripe Session Error:", stripeError);
@@ -304,6 +290,7 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
       ? messageBody.replace(/\n/g, '<br>') 
       : `<p>Your invoice from ${bizName} for <strong>$${invoice.totalAmount.toFixed(2)}</strong> is attached to this email.</p>`;
 
+    // If finalPaymentUrl is empty (because they have no Stripe), this button just won't render
     let payButtonHtml = '';
     if (finalPaymentUrl) {
       payButtonHtml = `

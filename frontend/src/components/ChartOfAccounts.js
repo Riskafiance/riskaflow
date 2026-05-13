@@ -20,7 +20,7 @@ const ChartOfAccounts = ({ accounts, refreshData }) => {
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this account?")) {
-      axios.delete(`http://localhost:5000/api/accounts/${id}`)
+      axios.delete(`https://riskaflow.onrender.com/api/accounts/${id}`)
         .then(() => refreshData())
         .catch(err => alert("Error deleting account."));
     }
@@ -36,7 +36,7 @@ const ChartOfAccounts = ({ accounts, refreshData }) => {
       return;
     }
 
-    const url = editingId ? `http://localhost:5000/api/accounts/${editingId}` : 'http://localhost:5000/api/accounts';
+    const url = editingId ? `https://riskaflow.onrender.com/api/accounts/${editingId}` : 'https://riskaflow.onrender.com/api/accounts';
     const method = editingId ? 'put' : 'post';
 
     // Bundle the form data WITH the Firebase user info
@@ -58,7 +58,7 @@ const ChartOfAccounts = ({ accounts, refreshData }) => {
 
   const openLedger = (account) => {
     setViewingAccount(account);
-    axios.get(`http://localhost:5000/api/accounts/${account.id}/transactions`)
+    axios.get(`https://riskaflow.onrender.com/api/accounts/${account.id}/transactions`)
       .then(res => setTransactions(res.data))
       .catch(err => console.error("Error fetching transactions:", err));
   };

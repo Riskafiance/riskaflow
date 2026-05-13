@@ -53,15 +53,15 @@ function App() {
     // If you are impersonating someone, use their email! Otherwise, use yours.
     const userEmail = impersonatedUser ? impersonatedUser.email : auth.currentUser.email;
 
-    axios.get(`http://localhost:5000/api/customers?email=${userEmail}`)
+    axios.get(`https://riskaflow.onrender.com/api/customers?email=${userEmail}`)
       .then(res => setCustomers(res.data))
       .catch(err => console.error("Error fetching customers:", err));
       
-    axios.get(`http://localhost:5000/api/invoices?email=${userEmail}`)
+    axios.get(`https://riskaflow.onrender.com/api/invoices?email=${userEmail}`)
       .then(res => setInvoices(res.data))
       .catch(err => console.error("Error fetching invoices:", err));
 
-    axios.get(`http://localhost:5000/api/accounts?email=${userEmail}`)
+    axios.get(`https://riskaflow.onrender.com/api/accounts?email=${userEmail}`)
       .then(res => setAccounts(res.data))
       .catch(err => console.error("Error fetching accounts:", err));
   };
@@ -95,7 +95,7 @@ function App() {
 
   const handleDeleteInvoice = (id) => {
     if (window.confirm("Are you sure you want to delete this invoice? This cannot be undone.")) {
-      axios.delete(`http://localhost:5000/api/invoices/${id}`)
+      axios.delete(`https://riskaflow.onrender.com/api/invoices/${id}`)
         .then(() => fetchData())
         .catch(err => alert("Error deleting invoice."));
     }
@@ -525,7 +525,7 @@ function App() {
                                     )}
                                   </td>
                                   <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                                    <a href={`http://localhost:5000/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '12px', backgroundColor: '#eff6ff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>View PDF</a>
+                                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '12px', backgroundColor: '#eff6ff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>View PDF</a>
                                   </td>
                                 </tr>
                               );

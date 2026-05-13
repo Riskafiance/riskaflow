@@ -74,7 +74,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
     setCheckoutLoadingId(inv.id);
     closePaymentModal(); // Closes the modal before opening the new tab
     
-    axios.post(`http://localhost:5000/api/invoices/${inv.id}/checkout-link`)
+    axios.post(`https://riskaflow.onrender.com/api/invoices/${inv.id}/checkout-link`)
       .then((res) => {
         window.open(res.data.url, '_blank');
       })
@@ -127,9 +127,9 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
     const customerName = inv.customer ? `${inv.customer.firstName} ${inv.customer.lastName}` : 'Customer';
     
     Promise.all([
-      axios.put(`http://localhost:5000/api/invoices/${inv.id}`, invoicePayload),
-      axios.put(`http://localhost:5000/api/accounts/${targetAccount.id}`, accountPayload),
-      axios.post(`http://localhost:5000/api/accounts/${targetAccount.id}/transactions`, {
+      axios.put(`https://riskaflow.onrender.com/api/invoices/${inv.id}`, invoicePayload),
+      axios.put(`https://riskaflow.onrender.com/api/accounts/${targetAccount.id}`, accountPayload),
+      axios.post(`https://riskaflow.onrender.com/api/accounts/${targetAccount.id}/transactions`, {
         description: `Payment received for Invoice #${inv.invoiceNumber} (${customerName})`,
         amount: inv.totalAmount
       })
@@ -146,7 +146,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
 
   const markAsUnpaid = (inv) => {
     if (window.confirm(`Are you sure you want to mark Invoice ${inv.invoiceNumber} as unpaid? \n\nThis will automatically reverse the deposit in your Chart of Accounts.`)) {
-      axios.put(`http://localhost:5000/api/invoices/${inv.id}`, { status: 'unpaid' })
+      axios.put(`https://riskaflow.onrender.com/api/invoices/${inv.id}`, { status: 'unpaid' })
         .then(() => {
           if (refreshData) refreshData();
         })
@@ -165,7 +165,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
     
     setEmailingInvoiceId(inv.id);
     
-    axios.post(`http://localhost:5000/api/invoices/${inv.id}/send-email`)
+    axios.post(`https://riskaflow.onrender.com/api/invoices/${inv.id}/send-email`)
       .then(() => {
         alert(`Invoice sent successfully to ${inv.customer.email}!`);
       })
@@ -352,7 +352,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
                       {emailingInvoiceId === inv.id ? 'Sending...' : 'Send Email'}
                     </button>
 
-                    <a href={`http://localhost:5000/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>PDF</a>
+                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>PDF</a>
                     <button onClick={() => onDelete(inv.id)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>Delete</button>
                   </td>
                 </tr>

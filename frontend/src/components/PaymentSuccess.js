@@ -7,7 +7,7 @@ const PaymentSuccess = ({ invoiceId }) => {
   useEffect(() => {
     if (invoiceId) {
       // Trigger the backend to mark as paid and send the email
-      axios.post(`http://localhost:5000/api/invoices/${invoiceId}/mark-paid`)
+      axios.post(`https://riskaflow.onrender.com/api/invoices/${invoiceId}/mark-paid`)
         .then(() => {
           setStatus('Payment Successful! A receipt has been sent to your email.');
           // Clean the URL so if they refresh, it doesn't send the email again

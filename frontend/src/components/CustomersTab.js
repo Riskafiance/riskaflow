@@ -24,7 +24,7 @@ const CustomersTab = ({ customers, refreshData, onViewProfile }) => {
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this client? This cannot be undone.")) {
-      axios.delete(`http://localhost:5000/api/customers/${id}`)
+      axios.delete(`https://riskaflow.onrender.com/api/customers/${id}`)
         .then(() => refreshData())
         .catch(err => alert("Error: Could not delete client. They may have invoices attached."));
     }
@@ -40,7 +40,7 @@ const CustomersTab = ({ customers, refreshData, onViewProfile }) => {
       return;
     }
 
-    const url = editingId ? `http://localhost:5000/api/customers/${editingId}` : 'http://localhost:5000/api/customers';
+    const url = editingId ? `https://riskaflow.onrender.com/api/customers/${editingId}` : 'https://riskaflow.onrender.com/api/customers';
     const method = editingId ? 'put' : 'post';
 
     // Bundle the form data WITH the Firebase user info

@@ -12,7 +12,7 @@ const AdminPortal = ({ onImpersonate }) => {
     setError('');
     setIsLoading(true);
 
-    axios.post('http://localhost:5000/api/users/impersonate', {
+    axios.post('https://riskaflow.onrender.com/api/users/impersonate', {
       adminEmail: auth.currentUser.email,
       flowCode: flowCode
     })

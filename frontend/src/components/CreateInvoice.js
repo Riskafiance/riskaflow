@@ -97,7 +97,7 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
       userUid: user.uid
     };
 
-    const url = invoiceToEdit ? `http://localhost:5000/api/invoices/${invoiceToEdit.id}` : 'http://localhost:5000/api/invoices';
+    const url = invoiceToEdit ? `https://riskaflow.onrender.com/api/invoices/${invoiceToEdit.id}` : 'https://riskaflow.onrender.com/api/invoices';
     const method = invoiceToEdit ? 'put' : 'post';
 
     axios[method](url, payload)

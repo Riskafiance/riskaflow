@@ -8,7 +8,7 @@ const ClientProfile = ({ clientId, onBack }) => {
   const [noteContent, setNoteContent] = useState('');
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/customers/${clientId}`)
+    axios.get(`https://riskaflow.onrender.com/api/customers/${clientId}`)
       .then(res => setClient(res.data))
       .catch(err => console.error("Error fetching client details:", err));
   }, [clientId]);
@@ -32,7 +32,7 @@ const ClientProfile = ({ clientId, onBack }) => {
   // Fixed Save Note Logic
   const handleSaveNote = () => {
     const { invoices, ...cleanClientData } = client;
-    axios.put(`http://localhost:5000/api/customers/${clientId}`, { ...cleanClientData, other: noteContent })
+    axios.put(`https://riskaflow.onrender.com/api/customers/${clientId}`, { ...cleanClientData, other: noteContent })
     .then(res => {
       setClient(prev => ({ ...prev, other: noteContent }));
       setIsEditingNotes(false);
@@ -128,7 +128,7 @@ const ClientProfile = ({ clientId, onBack }) => {
                         </span>
                       </td>
                       <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                        <a href={`http://localhost:5000/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600', fontSize: '14px', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff' }}>Open PDF</a>
+                        <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600', fontSize: '14px', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff' }}>Open PDF</a>
                       </td>
                     </tr>
                   ))}

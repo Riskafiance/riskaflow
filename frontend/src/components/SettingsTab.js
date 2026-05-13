@@ -11,7 +11,7 @@ const SettingsTab = () => {
 
   useEffect(() => {
     if (auth.currentUser) {
-      axios.get(`http://localhost:5000/api/users?email=${auth.currentUser.email}`)
+      axios.get(`https://riskaflow.onrender.com/api/users?email=${auth.currentUser.email}`)
         .then(res => {
           if (res.data) {
             setFormData({
@@ -50,7 +50,7 @@ const SettingsTab = () => {
 
   // 🔥 Handle Stripe Connect Onboarding
   const handleStripeConnect = () => {
-    axios.post('http://localhost:5000/api/stripe/onboard', { email: auth.currentUser.email })
+    axios.post('https://riskaflow.onrender.com/api/stripe/onboard', { email: auth.currentUser.email })
       .then(res => {
         window.open(res.data.url, '_blank'); // Opens Stripe's secure portal in a NEW tab
       })
@@ -61,7 +61,7 @@ const SettingsTab = () => {
     e.preventDefault();
     setSaveStatus('Saving...');
     
-    axios.put('http://localhost:5000/api/users', { ...formData, email: auth.currentUser.email })
+    axios.put('https://riskaflow.onrender.com/api/users', { ...formData, email: auth.currentUser.email })
       .then(() => {
         setSaveStatus('Settings saved successfully!');
         setTimeout(() => setSaveStatus(''), 3000);

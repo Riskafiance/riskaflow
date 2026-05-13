@@ -20,9 +20,18 @@ router.get('/', async (req, res) => {
     if (!email) return res.status(400).json({ error: "Email required" });
     
     let user = await prisma.user.findUnique({ where: { email } });
-    
+
+    // 🔥 FIX: If the user doesn't exist yet, create them with an RF code automatically!
+    if (!user) {
+      user = await prisma.user.create({
+        data: { 
+          email: email, 
+          flowCode: generateFlowCode() 
+        }
+      });
+    } 
     // 🔥 SMART BACKFILL: If the user exists but doesn't have a firm code, generate one!
-    if (user && !user.flowCode) {
+    else if (!user.flowCode) {
       user = await prisma.user.update({
         where: { email },
         data: { flowCode: generateFlowCode() }
@@ -50,9 +59,10 @@ router.put('/', async (req, res) => {
       businessLogo // 🔥 Includes the logo data
     } = req.body;
     
-    const updatedUser = await prisma.user.update({
+    // 🔥 FIX: Using UPSERT to ensure the account is created with an RF code if they just hit save
+    const updatedUser = await prisma.user.upsert({
       where: { email },
-      data: { 
+      update: { 
         businessName, 
         businessAddress, 
         businessPhone, 
@@ -60,6 +70,17 @@ router.put('/', async (req, res) => {
         firstName, 
         lastName,
         businessLogo // 🔥 Saves the logo to the database
+      },
+      create: {
+        email, 
+        businessName, 
+        businessAddress, 
+        businessPhone, 
+        businessWebsite, 
+        firstName, 
+        lastName,
+        businessLogo,
+        flowCode: generateFlowCode()
       }
     });
     
@@ -69,6 +90,7 @@ router.put('/', async (req, res) => {
     res.status(500).json({ error: "Error updating user" });
   }
 });
+
 // 🔥 SUPER ADMIN: Use an RF Code to access a client's account
 router.post('/impersonate', async (req, res) => {
   try {

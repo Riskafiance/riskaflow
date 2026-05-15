@@ -47,9 +47,9 @@ code {
 }
 
 /* Extra small phones */
-@media (max-width: 480px) {
+@media (max-width: 380px) {
   .CardWrapper {
-    padding: 16px !important;
+    padding: 15px !important;
   }
 }
 
@@ -57,6 +57,6 @@ code {
 /* Permanently zoom out the desktop view to feel like 65% zoom */
 @media (min-width: 1024px) {
   html {
-    zoom: 0.65;
+    zoom: 0.50;
   }
 }

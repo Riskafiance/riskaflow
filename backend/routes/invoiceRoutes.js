@@ -16,6 +16,16 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// 🔥 NEW: Helper function to generate the unique 'RF-XXXXXX' Firm Code
+const generateFlowCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'RF-';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 // GET all invoices
 router.get('/', async (req, res) => {
   try {
@@ -54,11 +64,15 @@ router.post('/', async (req, res) => {
     let user = await prisma.user.findUnique({ where: { email: userEmail } });
     if (!user) {
       user = await prisma.user.create({
-        data: { email: userEmail, googleId: userUid }
+        data: { 
+          email: userEmail, 
+          googleId: userUid,
+          flowCode: generateFlowCode() 
+        }
       });
     }
 
-    // 🔥 THE FIX: Smart Auto-Incrementing Invoice Logic
+    // Smart Auto-Incrementing Invoice Logic
     let finalInvoiceNumber = invoiceNumber;
 
     if (!finalInvoiceNumber || finalInvoiceNumber.trim() === '') {
@@ -184,7 +198,7 @@ router.get('/:id/pdf', async (req, res) => {
   }
 });
 
-// 🔥 Generate a Stripe Link for In-Person Payments (Method 2)
+// Generate a Stripe Link for In-Person Payments
 router.post('/:id/checkout-link', async (req, res) => {
   try {
     const invoice = await prisma.invoice.findUnique({
@@ -219,7 +233,7 @@ router.post('/:id/checkout-link', async (req, res) => {
       cancel_url: `http://localhost:3000/`,
     };
 
-    // 🔥 Safe to create session directly on the connected account now
+    // Safe to create session directly on the connected account now
     const session = await stripe.checkout.sessions.create(checkoutParams, {
       stripeAccount: invoice.user.stripeAccountId
     });

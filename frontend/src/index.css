@@ -52,3 +52,11 @@ code {
     padding: 16px !important;
   }
 }
+
+/* --- DESKTOP ZOOM FIX --- */
+/* Permanently zoom out the desktop view to feel like 65% zoom */
+@media (min-width: 1024px) {
+  html {
+    zoom: 0.65;
+  }
+}

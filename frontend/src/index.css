@@ -55,9 +55,9 @@ code {
 
 /* --- MOBILE ZOOM FIX --- */
 /* Zoom out the phone view specifically */
-@media (max-width: 768px) {
+@media (max-width: 800px) {
   html {
-    zoom: 0.8; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
+    zoom: 0.7; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
   }
 }
 

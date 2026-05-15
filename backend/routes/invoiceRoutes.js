@@ -198,7 +198,7 @@ router.get('/:id/pdf', async (req, res) => {
   }
 });
 
-// 🔥 Generate a Stripe Link for In-Person Payments (Method 2)
+// 🔥 Generate a Stripe Link for In-Person Payments 
 router.post('/:id/checkout-link', async (req, res) => {
   try {
     const invoice = await prisma.invoice.findUnique({
@@ -208,9 +208,14 @@ router.post('/:id/checkout-link', async (req, res) => {
 
     if (!invoice) return res.status(404).json({ error: "Invoice not found" });
 
-    // 🔥 SAAS SECURITY FIX: Block checkout if the user has not connected Stripe
     if (!invoice.user?.stripeAccountId) {
       return res.status(403).json({ error: "You must connect a bank account in Settings before accepting online payments." });
+    }
+
+    // 🔥 SAAS SECURITY FIX: Check if they actually finished setting up the account
+    const stripeAccountDetails = await stripe.accounts.retrieve(invoice.user.stripeAccountId);
+    if (!stripeAccountDetails.charges_enabled) {
+      return res.status(403).json({ error: "Your Stripe account setup is incomplete. Please finish onboarding in Settings." });
     }
 
     const bizName = invoice.user?.businessName || (invoice.user?.firstName ? `${invoice.user.firstName} ${invoice.user.lastName}` : "Business Owner");
@@ -233,7 +238,6 @@ router.post('/:id/checkout-link', async (req, res) => {
       cancel_url: `http://localhost:3000/`,
     };
 
-    // Safe to create session directly on the connected account now
     const session = await stripe.checkout.sessions.create(checkoutParams, {
       stripeAccount: invoice.user.stripeAccountId
     });
@@ -269,32 +273,39 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
     if (paymentLink && paymentLink.trim() !== "") {
       finalPaymentUrl = paymentLink;
     } 
-    // 🔥 SAAS SECURITY FIX: Only auto-generate the Stripe checkout if they actually have a Stripe account
+    // 🔥 SAAS SECURITY FIX: Only auto-generate the Stripe checkout if they have a fully setup Stripe account
     else if (invoice.user?.stripeAccountId) {
       try {
-        const checkoutParams = {
-          payment_method_types: ['card'],
-          line_items: [{
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `Invoice ${invoice.invoiceNumber} - ${bizName}`,
-                description: `Professional Services for ${invoice.customer.firstName} ${invoice.customer.lastName}`,
-              },
-              unit_amount: Math.round(invoice.totalAmount * 100), 
-            },
-            quantity: 1,
-          }],
-          mode: 'payment',
-          success_url: `http://localhost:3000/?paid_invoice_id=${invoice.id}`, 
-          cancel_url: `http://localhost:3000/`,
-        };
-
-        const session = await stripe.checkout.sessions.create(checkoutParams, {
-          stripeAccount: invoice.user.stripeAccountId
-        });
+        const stripeAccountDetails = await stripe.accounts.retrieve(invoice.user.stripeAccountId);
         
-        finalPaymentUrl = session.url;
+        // ONLY generate the link if they are fully permitted to receive money
+        if (stripeAccountDetails.charges_enabled) {
+          const checkoutParams = {
+            payment_method_types: ['card'],
+            line_items: [{
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: `Invoice ${invoice.invoiceNumber} - ${bizName}`,
+                  description: `Professional Services for ${invoice.customer.firstName} ${invoice.customer.lastName}`,
+                },
+                unit_amount: Math.round(invoice.totalAmount * 100), 
+              },
+              quantity: 1,
+            }],
+            mode: 'payment',
+            success_url: `http://localhost:3000/?paid_invoice_id=${invoice.id}`, 
+            cancel_url: `http://localhost:3000/`,
+          };
+
+          const session = await stripe.checkout.sessions.create(checkoutParams, {
+            stripeAccount: invoice.user.stripeAccountId
+          });
+          
+          finalPaymentUrl = session.url;
+        } else {
+          console.log(`User ${invoice.user.email} has incomplete Stripe onboarding. Hiding payment link.`);
+        }
       } catch (stripeError) {
         console.error("Stripe Session Error:", stripeError);
       }
@@ -304,7 +315,7 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
       ? messageBody.replace(/\n/g, '<br>') 
       : `<p>Your invoice from ${bizName} for <strong>$${invoice.totalAmount.toFixed(2)}</strong> is attached to this email.</p>`;
 
-    // If finalPaymentUrl is empty (because they have no Stripe), this button just won't render
+    // If finalPaymentUrl is empty (because they have no Stripe or incomplete setup), this button just won't render
     let payButtonHtml = '';
     if (finalPaymentUrl) {
       payButtonHtml = `

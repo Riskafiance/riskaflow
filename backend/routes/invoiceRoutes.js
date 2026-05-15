@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Smart Auto-Incrementing Invoice Logic
+    // 🔥 THE FIX: Smart Auto-Incrementing Invoice Logic
     let finalInvoiceNumber = invoiceNumber;
 
     if (!finalInvoiceNumber || finalInvoiceNumber.trim() === '') {
@@ -198,7 +198,7 @@ router.get('/:id/pdf', async (req, res) => {
   }
 });
 
-// Generate a Stripe Link for In-Person Payments
+// 🔥 Generate a Stripe Link for In-Person Payments (Method 2)
 router.post('/:id/checkout-link', async (req, res) => {
   try {
     const invoice = await prisma.invoice.findUnique({

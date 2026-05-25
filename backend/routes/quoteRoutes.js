@@ -1,131 +1,147 @@
-generator client {
-  provider = "prisma-client-js"
-}
+const express = require('express');
+const router = express.Router();
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
+// GET all quotes
+router.get('/', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.json([]); 
 
-// 🔥 NEW: The User/Business Profile Table
-model User {
-  id              String     @id @default(uuid())
-  googleId        String?    @unique // To link their Google login
-  email           String     @unique
-  firstName       String?
-  lastName        String?
-  
-  // Business Details for the Invoices
-  businessName    String?
-  businessAddress String?
-  businessPhone   String?
-  businessWebsite String?
-  businessLogo    String?    
-  stripeAccountId String?
-  
-  // 🔥 THE MASTER FIRM CODE (IEP Style)
-  flowCode        String?    @unique
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.json([]); 
 
-  createdAt       DateTime   @default(now())
+    const quotes = await prisma.quote.findMany({
+      where: { userId: user.id }, 
+      include: { customer: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(quotes);
+  } catch (error) {
+    console.error("GET QUOTES ERROR:", error);
+    res.status(500).json({ error: "Failed to fetch quotes" });
+  }
+});
 
-  // Relationships: A user owns their own customers, invoices, accounts, and quotes
-  customers       Customer[]
-  invoices        Invoice[]
-  accounts        Account[]
-  quotes          Quote[]    // 🔥 NEW: Link Quotes to the User
-}
+// POST a new quote
+router.post('/', async (req, res) => {
+  try {
+    const { quoteNumber, customerId, validUntil, status, subTotal, taxTotal, totalAmount, items, customerNote, userEmail } = req.body;
+    
+    const user = await prisma.user.findUnique({ where: { email: userEmail } });
+    if (!user) return res.status(400).json({ error: "User not found" });
 
-model Customer {
-  id          String   @id @default(uuid())
-  title       String?
-  firstName   String
-  lastName    String
-  middleName  String?
-  suffix      String?
-  companyName String?
-  displayName String?
-  email       String?
-  phone       String?
-  mobile      String?
-  fax         String?
-  website     String?
-  other       String?
-  address     String?
-  cc          String?
-  bcc         String?
+    const itemsString = Array.isArray(items) ? JSON.stringify(items) : items || "[]";
 
-  createdAt   DateTime @default(now())
-  
-  // SaaS Link: Which user owns this customer?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  invoices    Invoice[]
-  quotes      Quote[]    // 🔥 NEW: Link Quotes to the Customer
-}
+    let finalQuoteNumber = quoteNumber;
+    if (!finalQuoteNumber || finalQuoteNumber.trim() === '') {
+      const lastQuote = await prisma.quote.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' } 
+      });
 
-// 🔥 NEW: The Quote Model
-model Quote {
-  id            String   @id @default(uuid())
-  quoteNumber   String   
-  validUntil    DateTime
-  status        String   @default("pending") // pending, accepted, rejected, converted
-  subTotal      Float    @default(0)
-  taxTotal      Float    @default(0)
-  totalAmount   Float    @default(0)
-  items         String  
-  customerNote  String? 
-  createdAt     DateTime @default(now())
-  
-  // SaaS Link: Which user owns this quote?
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
+      if (lastQuote && lastQuote.quoteNumber) {
+        const match = lastQuote.quoteNumber.match(/(\d+)$/);
+        if (match) {
+          const nextNum = parseInt(match[0], 10) + 1;
+          const paddedNum = nextNum.toString().padStart(3, '0');
+          finalQuoteNumber = lastQuote.quoteNumber.replace(/\d+$/, paddedNum);
+        } else {
+          finalQuoteNumber = 'QT-001';
+        }
+      } else {
+        finalQuoteNumber = 'QT-001';
+      }
+    }
 
-  customerId    String
-  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-}
+    const newQuote = await prisma.quote.create({
+      data: {
+        quoteNumber: finalQuoteNumber,
+        customerId,
+        validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default 30 days
+        status: status || 'pending',
+        subTotal: parseFloat(subTotal) || 0,
+        taxTotal: parseFloat(taxTotal) || 0,
+        totalAmount: parseFloat(totalAmount) || 0,
+        items: itemsString,
+        customerNote: customerNote || '', 
+        userId: user.id 
+      }
+    });
+    res.json(newQuote);
+  } catch (error) {
+    console.error("CREATE QUOTE ERROR:", error);
+    res.status(500).json({ error: "Database failed to save the quote." });
+  }
+});
 
-model Invoice {
-  id            String   @id @default(uuid())
-  invoiceNumber String   // 🔥 Removed @unique so different users can both have an "INV-001"
-  dueDate       DateTime
-  status        String   @default("unpaid")
-  subTotal      Float    @default(0)
-  taxTotal      Float    @default(0)
-  totalAmount   Float    @default(0)
-  items         String  
-  customerNote  String? 
-  createdAt     DateTime @default(now())
-  
-  // SaaS Link: Which user owns this invoice?
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
+// DELETE a quote
+router.delete('/:id', async (req, res) => {
+  try {
+    await prisma.quote.delete({ where: { id: req.params.id } });
+    res.json({ message: "Quote deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete quote" });
+  }
+});
 
-  customerId    String
-  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-}
+// 🔥 THE MAGIC ROUTE: Convert Quote to Invoice
+router.post('/:id/convert', async (req, res) => {
+  try {
+    const quoteId = req.params.id;
+    
+    // 1. Grab the original quote
+    const quote = await prisma.quote.findUnique({ where: { id: quoteId } });
+    if (!quote) return res.status(404).json({ error: "Quote not found" });
 
-model Account {
-  id          String   @id @default(uuid())
-  name        String
-  type        String
-  detailType  String
-  balance     Float    @default(0)
-  createdAt   DateTime @default(now())
+    if (quote.status === 'converted') {
+      return res.status(400).json({ error: "Quote has already been converted to an invoice." });
+    }
 
-  // SaaS Link: Which user owns this bank account?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+    // 2. Figure out the user's next Invoice Number
+    const lastInvoice = await prisma.invoice.findFirst({
+      where: { userId: quote.userId },
+      orderBy: { createdAt: 'desc' } 
+    });
 
-  transactions Transaction[]
-}
+    let newInvoiceNumber = 'INV-001';
+    if (lastInvoice && lastInvoice.invoiceNumber) {
+      const match = lastInvoice.invoiceNumber.match(/(\d+)$/);
+      if (match) {
+        const nextNum = parseInt(match[0], 10) + 1;
+        const paddedNum = nextNum.toString().padStart(3, '0');
+        newInvoiceNumber = lastInvoice.invoiceNumber.replace(/\d+$/, paddedNum);
+      }
+    }
 
-model Transaction {
-  id          String   @id @default(uuid())
-  description String
-  amount      Float
-  createdAt   DateTime @default(now())
+    // 3. Create the new invoice with the quote's data
+    const newInvoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber: newInvoiceNumber,
+        customerId: quote.customerId,
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Default due in 14 days
+        status: 'unpaid',
+        subTotal: quote.subTotal,
+        taxTotal: quote.taxTotal,
+        totalAmount: quote.totalAmount,
+        items: quote.items,
+        customerNote: quote.customerNote,
+        userId: quote.userId
+      }
+    });
 
-  accountId   String
-  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-}
+    // 4. Update the quote status to 'converted' so it can't be converted twice
+    await prisma.quote.update({
+      where: { id: quoteId },
+      data: { status: 'converted' }
+    });
+
+    res.json({ success: true, invoice: newInvoice });
+  } catch (error) {
+    console.error("CONVERT QUOTE ERROR:", error);
+    res.status(500).json({ error: "Failed to convert quote to invoice." });
+  }
+});
+
+module.exports = router;

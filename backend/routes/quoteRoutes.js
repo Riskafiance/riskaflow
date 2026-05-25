@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 🔥 NEW: The User/Business Profile Table
+model User {
+  id              String     @id @default(uuid())
+  googleId        String?    @unique // To link their Google login
+  email           String     @unique
+  firstName       String?
+  lastName        String?
+  
+  // Business Details for the Invoices
+  businessName    String?
+  businessAddress String?
+  businessPhone   String?
+  businessWebsite String?
+  businessLogo    String?    
+  stripeAccountId String?
+  
+  // 🔥 THE MASTER FIRM CODE (IEP Style)
+  flowCode        String?    @unique
+
+  createdAt       DateTime   @default(now())
+
+  // Relationships: A user owns their own customers, invoices, accounts, and quotes
+  customers       Customer[]
+  invoices        Invoice[]
+  accounts        Account[]
+  quotes          Quote[]    // 🔥 NEW: Link Quotes to the User
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  title       String?
+  firstName   String
+  lastName    String
+  middleName  String?
+  suffix      String?
+  companyName String?
+  displayName String?
+  email       String?
+  phone       String?
+  mobile      String?
+  fax         String?
+  website     String?
+  other       String?
+  address     String?
+  cc          String?
+  bcc         String?
+
+  createdAt   DateTime @default(now())
+  
+  // SaaS Link: Which user owns this customer?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  invoices    Invoice[]
+  quotes      Quote[]    // 🔥 NEW: Link Quotes to the Customer
+}
+
+// 🔥 NEW: The Quote Model
+model Quote {
+  id            String   @id @default(uuid())
+  quoteNumber   String   
+  validUntil    DateTime
+  status        String   @default("pending") // pending, accepted, rejected, converted
+  subTotal      Float    @default(0)
+  taxTotal      Float    @default(0)
+  totalAmount   Float    @default(0)
+  items         String  
+  customerNote  String? 
+  createdAt     DateTime @default(now())
+  
+  // SaaS Link: Which user owns this quote?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  invoiceNumber String   // 🔥 Removed @unique so different users can both have an "INV-001"
+  dueDate       DateTime
+  status        String   @default("unpaid")
+  subTotal      Float    @default(0)
+  taxTotal      Float    @default(0)
+  totalAmount   Float    @default(0)
+  items         String  
+  customerNote  String? 
+  createdAt     DateTime @default(now())
+  
+  // SaaS Link: Which user owns this invoice?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  detailType  String
+  balance     Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  // SaaS Link: Which user owns this bank account?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  description String
+  amount      Float
+  createdAt   DateTime @default(now())
+
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}

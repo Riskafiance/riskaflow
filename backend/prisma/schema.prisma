@@ -26,18 +26,13 @@ model User {
   // 🔥 THE MASTER FIRM CODE (IEP Style)
   flowCode        String?    @unique
 
-  // 🟢 NEW: QuickBooks Integration Tokens
-  qbRealmId       String?    
-  qbAccessToken   String?    
-  qbRefreshToken  String?    
-  qbTokenExpires  DateTime?  
-
   createdAt       DateTime   @default(now())
 
-  // Relationships: A user owns their own customers, invoices, and accounts
+  // Relationships: A user owns their own customers, invoices, accounts, and quotes
   customers       Customer[]
   invoices        Invoice[]
   accounts        Account[]
+  quotes          Quote[]    // 🔥 NEW: Link Quotes to the User
 }
 
 model Customer {
@@ -66,6 +61,28 @@ model Customer {
   user        User     @relation(fields: [userId], references: [id])
   
   invoices    Invoice[]
+  quotes      Quote[]    // 🔥 NEW: Link Quotes to the Customer
+}
+
+// 🔥 NEW: The Quote Model
+model Quote {
+  id            String   @id @default(uuid())
+  quoteNumber   String   
+  validUntil    DateTime
+  status        String   @default("pending") // pending, accepted, rejected, converted
+  subTotal      Float    @default(0)
+  taxTotal      Float    @default(0)
+  totalAmount   Float    @default(0)
+  items         String  
+  customerNote  String? 
+  createdAt     DateTime @default(now())
+  
+  // SaaS Link: Which user owns this quote?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model Invoice {

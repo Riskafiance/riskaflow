@@ -134,6 +134,18 @@ function QuotesTab({ quotes, onCreateNew, onEdit, onEmail, onDelete, refreshData
                           </>
                         )}
 
+                        {/* 🔥 NEW: View PDF Button */}
+                        <a 
+                          href={`https://riskaflow.onrender.com/api/quotes/${quote.id}/pdf`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ padding: '6px 12px', backgroundColor: '#eff6ff', color: '#2563eb', textDecoration: 'none', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', fontWeight: '700', transition: 'all 0.2s', display: 'flex', alignItems: 'center' }}
+                          onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} 
+                          onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}
+                        >
+                          PDF
+                        </a>
+
                         <button 
                           onClick={() => onEmail(quote)}
                           style={{ padding: '6px 12px', backgroundColor: 'transparent', color: '#8b5cf6', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}

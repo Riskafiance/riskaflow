@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function QuotesTab({ quotes, onCreateNew, onEdit, onDelete, refreshData }) {
+function QuotesTab({ quotes, onCreateNew, onEdit, onEmail, onDelete, refreshData }) {
   const [isConverting, setIsConverting] = useState(false);
 
   // Trigger the backend to duplicate the quote into a live invoice
@@ -111,18 +111,37 @@ function QuotesTab({ quotes, onCreateNew, onEdit, onDelete, refreshData }) {
                     <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         
-                        {/* Only show Convert button if it hasn't been converted yet */}
+                        {/* Only show Edit and Convert buttons if it hasn't been converted yet */}
                         {quote.status !== 'converted' && (
-                          <button 
-                            onClick={() => handleConvertToInvoice(quote)}
-                            disabled={isConverting}
-                            style={{ padding: '6px 12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: isConverting ? 'wait' : 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'} 
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
-                          >
-                            Convert to Invoice
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => onEdit(quote)}
+                              style={{ padding: '6px 12px', backgroundColor: 'transparent', color: '#3b82f6', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#3b82f6'; }} 
+                              onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.borderColor = '#bfdbfe'; }}
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleConvertToInvoice(quote)}
+                              disabled={isConverting}
+                              style={{ padding: '6px 12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: isConverting ? 'wait' : 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = '#059669'} 
+                              onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+                            >
+                              Convert
+                            </button>
+                          </>
                         )}
+
+                        <button 
+                          onClick={() => onEmail(quote)}
+                          style={{ padding: '6px 12px', backgroundColor: 'transparent', color: '#8b5cf6', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseOver={(e) => { e.target.style.backgroundColor = '#f5f3ff'; e.target.style.borderColor = '#8b5cf6'; }} 
+                          onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.borderColor = '#c4b5fd'; }}
+                        >
+                          Email
+                        </button>
 
                         <button 
                           onClick={() => onDelete(quote.id)}

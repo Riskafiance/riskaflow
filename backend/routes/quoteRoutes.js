@@ -144,4 +144,41 @@ router.post('/:id/convert', async (req, res) => {
   }
 });
 
+// 🔥 NEW: UPDATE an existing quote
+router.put('/:id', async (req, res) => {
+  try {
+    const { quoteNumber, customerId, validUntil, subTotal, taxTotal, totalAmount, items, customerNote } = req.body;
+    
+    const updatedQuote = await prisma.quote.update({
+      where: { id: req.params.id },
+      data: {
+        quoteNumber,
+        customerId,
+        validUntil: new Date(validUntil),
+        subTotal: parseFloat(subTotal) || 0,
+        taxTotal: parseFloat(taxTotal) || 0,
+        totalAmount: parseFloat(totalAmount) || 0,
+        items: Array.isArray(items) ? JSON.stringify(items) : items,
+        customerNote: customerNote || ''
+      }
+    });
+    res.json(updatedQuote);
+  } catch (error) {
+    console.error("UPDATE QUOTE ERROR:", error);
+    res.status(500).json({ error: "Failed to update quote." });
+  }
+});
+
+// 🔥 NEW: EMAIL a quote
+router.post('/:id/send-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    // NOTE: This handles the UI workflow. 
+    // We can plug in the actual Nodemailer/SendGrid logic here next!
+    res.json({ success: true, message: `Quote sent to ${email}!` });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to send email." });
+  }
+});
+
 module.exports = router;

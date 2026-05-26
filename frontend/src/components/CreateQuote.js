@@ -92,12 +92,12 @@ function CreateQuote({ customers, onCancel, onSuccess, quoteToEdit }) {
 
     try {
       if (quoteToEdit) {
-        // We haven't built the PUT route for quotes yet, so this edits by deleting and recreating, 
-        // or you can add a PUT route later. For now, we save as a new quote.
-        alert("Editing functionality saves as a new version. The old quote will remain.");
-      } 
-      
-      await axios.post('https://riskaflow.onrender.com/api/quotes', payload);
+        // 🔥 NEW: If editing, use PUT to update the existing quote
+        await axios.put(`https://riskaflow.onrender.com/api/quotes/${quoteToEdit.id}`, payload);
+      } else {
+        // 🔥 NEW: If new, use POST to create
+        await axios.post('https://riskaflow.onrender.com/api/quotes', payload);
+      }
       onSuccess(); // Redirects back to the Quotes Tab
       
     } catch (error) {

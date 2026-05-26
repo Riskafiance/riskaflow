@@ -14,6 +14,7 @@ import ChartOfAccounts from './components/ChartOfAccounts';
 import ReportsTab from './components/ReportsTab';
 import SettingsTab from './components/SettingsTab';
 import SendInvoiceEmail from './components/SendInvoiceEmail'; 
+import SendQuoteEmail from './components/SendQuoteEmail'; // 🔥 NEW: Component to email quotes
 import PaymentSuccess from './components/PaymentSuccess';
 import AdminPortal from './components/AdminPortal';
 
@@ -28,6 +29,7 @@ function App() {
   const [invoiceToEdit, setInvoiceToEdit] = useState(null); 
   const [quoteToEdit, setQuoteToEdit] = useState(null); // 🔥 NEW: Track quotes being edited
   const [invoiceToEmail, setInvoiceToEmail] = useState(null); 
+  const [quoteToEmail, setQuoteToEmail] = useState(null); // 🔥 NEW: Track quotes being emailed
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [quotes, setQuotes] = useState([]); // 🔥 NEW: State for Quotes
@@ -426,6 +428,7 @@ function App() {
                 quotes={quotes} 
                 onCreateNew={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} 
                 onEdit={handleEditQuote} 
+                onEmail={(quote) => { setQuoteToEmail(quote); setActiveTab('sendQuoteEmail'); }}
                 onDelete={handleDeleteQuote} 
                 refreshData={fetchData} 
               />
@@ -436,6 +439,15 @@ function App() {
                 invoice={invoiceToEmail} 
                 onBack={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
                 onSend={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
+              />
+            )}
+
+            {/* 🔥 NEW: Render the Email Quote screen */}
+            {activeTab === 'sendQuoteEmail' && quoteToEmail && (
+              <SendQuoteEmail 
+                quote={quoteToEmail} 
+                onBack={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
+                onSend={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
               />
             )}
 
@@ -636,7 +648,8 @@ function App() {
 
           {/* FOOTER */}
           <div style={{ textAlign: 'center', padding: '40px 0 20px 0', marginTop: 'auto', color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
-            © 2026 ClearPay. All Rights Reserved.<br />
+            © 2026 Riska's Finance. All Rights Reserved.<br />
+            <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>
           </div>
 
         </div>

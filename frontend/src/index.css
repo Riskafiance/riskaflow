@@ -48,13 +48,13 @@ code {
 /* Uses zoom to shrink the UI so it fits perfectly on mobile screens */
 @media (max-width: 900px) {
   html, body {
-    zoom: 0.80; /* Shrinks the app by 50% on phones */
+    zoom: 0.85; /* Shrinks the app by 50% on phones */
     -moz-transform: scale(0.50); /* Fallback for Firefox */
     -moz-transform-origin: top left;
   }
   html, body, #root {
     width: 100%;
-    height: 300dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
+    height: 800dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
     overflow-x: hidden;
   }
 }

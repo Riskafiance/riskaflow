@@ -1,3 +1,10 @@
+Here is your completely updated **`CreateInvoice.js`** file.
+
+I have replaced the static single-item inputs with a highly professional, dynamic table that allows you to add as many products or services as you want—just like QuickBooks! It auto-calculates the subtotal based on the `Quantity` and `Rate` of every single line item, and your Tax and Credit Card fee checkboxes will perfectly calculate on top of the new dynamic subtotal.
+
+Replace everything inside `frontend/src/components/CreateInvoice.js` with this exact code:
+
+```jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { auth } from '../firebase'; 
@@ -10,11 +17,13 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
     customerId: '',
     status: 'unpaid',
     dueDate: '',
-    description: '',
-    category: defaultCategory,
-    price: '',
-    customerNote: '' // 🔥 Added customer note to state
+    customerNote: '' 
   });
+
+  // 🔥 NEW: Dynamic Line Items State
+  const [lineItems, setLineItems] = useState([
+    { category: defaultCategory, description: '', quantity: 1, price: '' }
+  ]);
 
   const [applyTax, setApplyTax] = useState(false);
   const [applyCcFee, setApplyCcFee] = useState(false);
@@ -26,19 +35,19 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
         parsedItems = typeof invoiceToEdit.items === 'string' ? JSON.parse(invoiceToEdit.items) : invoiceToEdit.items;
       } catch (e) {}
       
-      const mainItem = parsedItems && parsedItems.length > 0 ? parsedItems[0] : {};
-      
       setApplyTax(invoiceToEdit.taxTotal > 0);
       setApplyCcFee(parsedItems.some(item => item.category === 'Credit Card Fee'));
+
+      // Filter out the CC fee from the main line items so it doesn't show in the table (since it's a checkbox)
+      const baseItems = parsedItems.filter(item => item.category !== 'Credit Card Fee');
+
+      setLineItems(baseItems.length > 0 ? baseItems : [{ category: defaultCategory, description: '', quantity: 1, price: '' }]);
 
       setFormData({
         customerId: invoiceToEdit.customerId || '',
         status: invoiceToEdit.status || 'unpaid',
         dueDate: invoiceToEdit.dueDate ? invoiceToEdit.dueDate.split('T')[0] : '',
-        description: mainItem.description || '',
-        category: mainItem.category || defaultCategory,
-        price: mainItem.price || '',
-        customerNote: invoiceToEdit.customerNote || '' // 🔥 Loads existing note if editing
+        customerNote: invoiceToEdit.customerNote || '' 
       });
     }
   }, [invoiceToEdit, defaultCategory]);
@@ -47,11 +56,32 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const priceNum = parseFloat(formData.price) || 0;
-  const subTotal = priceNum;
+  // 🔥 NEW: Handlers for Dynamic Line Items
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...lineItems];
+    newItems[index][field] = value;
+    setLineItems(newItems);
+  };
+
+  const handleAddItem = () => {
+    setLineItems([...lineItems, { category: defaultCategory, description: '', quantity: 1, price: '' }]);
+  };
+
+  const handleRemoveItem = (index) => {
+    if (lineItems.length === 1) return; // Keep at least one row
+    const newItems = lineItems.filter((_, i) => i !== index);
+    setLineItems(newItems);
+  };
+
+  const handleClearAllLines = () => {
+    setLineItems([{ category: defaultCategory, description: '', quantity: 1, price: '' }]);
+  };
+
+  // 🔥 UPDATED: Calculations based on the dynamic array
+  const subTotal = lineItems.reduce((sum, item) => sum + ((parseFloat(item.quantity) || 1) * (parseFloat(item.price) || 0)), 0);
   
-  const taxTotal = applyTax ? priceNum * 0.10 : 0; 
-  const ccFeeTotal = applyCcFee ? priceNum * 0.03 : 0;
+  const taxTotal = applyTax ? subTotal * 0.10 : 0; 
+  const ccFeeTotal = applyCcFee ? subTotal * 0.03 : 0;
   
   const grandTotal = subTotal + taxTotal + ccFeeTotal;
 
@@ -64,20 +94,20 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
       return;
     }
 
-    // 🔥 FIXED: If editing, keep old number. If new, leave blank so Backend auto-increments!
     const invNumber = invoiceToEdit ? invoiceToEdit.invoiceNumber : "";
 
-    const invoiceItems = [{
-      description: formData.description,
-      category: formData.category, 
-      quantity: 1,
-      price: priceNum
-    }];
+    // Map the UI line items to the format the backend expects
+    const invoiceItems = lineItems.map(item => ({
+      category: item.category,
+      description: item.description,
+      quantity: parseFloat(item.quantity) || 1,
+      price: parseFloat(item.price) || 0
+    }));
 
     if (applyCcFee) {
       invoiceItems.push({
-        description: 'Credit Card Processing Fee (3%)',
         category: 'Credit Card Fee', 
+        description: 'Credit Card Processing Fee (3%)',
         quantity: 1,
         price: ccFeeTotal
       });
@@ -92,7 +122,7 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
       taxTotal: taxTotal,
       totalAmount: grandTotal,
       items: invoiceItems,
-      customerNote: formData.customerNote, // 🔥 Attaches the note to the payload!
+      customerNote: formData.customerNote, 
       userEmail: user.email,
       userUid: user.uid
     };
@@ -111,6 +141,7 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
 
   const inputStyle = { padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', width: '100%', boxSizing: 'border-box', fontSize: '14px', outlineColor: '#2563eb' };
   const labelStyle = { display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '700', color: '#111827' };
+  const tableHeaderStyle = { padding: '12px 10px', color: '#4b5563', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' };
 
   return (
     <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
@@ -146,33 +177,72 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
             <label style={labelStyle}>Due Date:</label>
             <input type="date" required name="dueDate" value={formData.dueDate} onChange={handleChange} style={inputStyle} />
           </div>
-          <div>
-            <label style={labelStyle}>Category (Income Account):</label>
-            {incomeAccounts.length === 0 ? (
-              <div style={{ color: '#dc2626', fontSize: '13px', padding: '12px', backgroundColor: '#fee2e2', borderRadius: '6px', border: '1px solid #fca5a5' }}>
-                No Income accounts found! Add one in your Chart of Accounts first.
-              </div>
-            ) : (
-              <select required name="category" value={formData.category} onChange={handleChange} style={inputStyle}>
-                {incomeAccounts.map(acc => (
-                  <option key={acc.id} value={acc.name}>{acc.name}</option>
-                ))}
-              </select>
-            )}
+        </div>
+
+        {/* 🔥 NEW: Dynamic Line Items Table */}
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ backgroundColor: '#f9fafb' }}>
+              <tr>
+                <th style={tableHeaderStyle}>#</th>
+                <th style={{...tableHeaderStyle, width: '25%'}}>Category</th>
+                <th style={{...tableHeaderStyle, width: '40%'}}>Product or Service Description</th>
+                <th style={{...tableHeaderStyle, width: '10%'}}>Qty</th>
+                <th style={{...tableHeaderStyle, width: '15%'}}>Rate ($)</th>
+                <th style={{...tableHeaderStyle, width: '10%', textAlign: 'right'}}>Amount</th>
+                <th style={{...tableHeaderStyle, width: '40px', textAlign: 'center'}}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems.map((item, index) => (
+                <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '12px 10px', color: '#6b7280', fontSize: '14px', fontWeight: '600' }}>{index + 1}</td>
+                  
+                  <td style={{ padding: '12px 10px' }}>
+                    {incomeAccounts.length === 0 ? (
+                      <div style={{ color: '#dc2626', fontSize: '11px' }}>No Income accounts found!</div>
+                    ) : (
+                      <select required value={item.category} onChange={(e) => handleItemChange(index, 'category', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', outlineColor: '#2563eb', fontSize: '13px' }}>
+                        {incomeAccounts.map(acc => <option key={acc.id} value={acc.name}>{acc.name}</option>)}
+                      </select>
+                    )}
+                  </td>
+                  
+                  <td style={{ padding: '12px 10px' }}>
+                    <input type="text" required placeholder="e.g. Tax Preparation" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', boxSizing: 'border-box', outlineColor: '#2563eb', fontSize: '13px' }} />
+                  </td>
+                  
+                  <td style={{ padding: '12px 10px' }}>
+                    <input type="number" min="1" step="1" required value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', boxSizing: 'border-box', outlineColor: '#2563eb', fontSize: '13px' }} />
+                  </td>
+                  
+                  <td style={{ padding: '12px 10px' }}>
+                    <input type="number" min="0" step="0.01" required placeholder="0.00" value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', boxSizing: 'border-box', outlineColor: '#2563eb', fontSize: '13px' }} />
+                  </td>
+
+                  <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                    ${((parseFloat(item.quantity) || 1) * (parseFloat(item.price) || 0)).toFixed(2)}
+                  </td>
+
+                  <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                    <button type="button" onClick={() => handleRemoveItem(index)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '18px', cursor: 'pointer', padding: '0 5px' }} title="Remove Line">
+                      ×
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ padding: '12px', backgroundColor: '#f9fafb', display: 'flex', gap: '10px' }}>
+            <button type="button" onClick={handleAddItem} style={{ padding: '8px 16px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
+              + Add Product/Service
+            </button>
+            <button type="button" onClick={handleClearAllLines} style={{ padding: '8px 16px', backgroundColor: 'transparent', color: '#6b7280', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+              Clear All Lines
+            </button>
           </div>
         </div>
 
-        <div>
-          <label style={labelStyle}>Service Description:</label>
-          <input type="text" required name="description" value={formData.description} onChange={handleChange} style={inputStyle} placeholder="e.g. Tax Preparation" />
-        </div>
-
-        <div>
-          <label style={labelStyle}>Price ($):</label>
-          <input type="number" step="0.01" min="0" required name="price" value={formData.price} onChange={handleChange} style={inputStyle} placeholder="0.00" />
-        </div>
-
-        {/* 🔥 NEW: Customer Note Text Area */}
         <div>
           <label style={labelStyle}>Note to Customer (Optional):</label>
           <textarea 
@@ -241,3 +311,5 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
 };
 
 export default CreateInvoice;
+
+```

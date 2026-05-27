@@ -437,270 +437,265 @@ function App() {
         </div>
 
         {/* ➡️ MAIN CONTENT AREA */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
+        <div style={{ flex: 1, padding: '40px 50px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           
-          {/* 🔧 FIX: Removed flexGrow:1 and flexDirection:column from inner wrapper so content */}
-          {/* sits naturally and the footer follows immediately after — no empty gap. */}
-          <div style={{ padding: '40px 50px' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', flexGrow: 1 }}>
 
-              {activeTab === 'createInvoice' && <CreateInvoice customers={customers} accounts={accounts} onCancel={() => { setActiveTab('invoices'); setInvoiceToEdit(null); }} onSuccess={handleInvoiceSuccess} invoiceToEdit={invoiceToEdit} />}
-              
-              {activeTab === 'createQuote' && <CreateQuote customers={customers} onCancel={() => { setActiveTab('quotes'); setQuoteToEdit(null); }} onSuccess={handleQuoteSuccess} quoteToEdit={quoteToEdit} />}
-              
-              {activeTab === 'invoices' && (
-                <InvoicesTab 
-                  invoices={invoices} 
-                  accounts={accounts} 
-                  onCreateNew={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} 
-                  onEdit={handleEditInvoice} 
-                  onDelete={handleDeleteInvoice} 
-                  refreshData={fetchData} 
-                  onSendEmail={(inv) => { setInvoiceToEmail(inv); setActiveTab('sendEmail'); }} 
-                  onManagePayment={handleManagePayment} 
-                />
-              )}
+            {activeTab === 'createInvoice' && <CreateInvoice customers={customers} accounts={accounts} onCancel={() => { setActiveTab('invoices'); setInvoiceToEdit(null); }} onSuccess={handleInvoiceSuccess} invoiceToEdit={invoiceToEdit} />}
+            
+            {activeTab === 'createQuote' && <CreateQuote customers={customers} onCancel={() => { setActiveTab('quotes'); setQuoteToEdit(null); }} onSuccess={handleQuoteSuccess} quoteToEdit={quoteToEdit} />}
+            
+            {activeTab === 'invoices' && (
+              <InvoicesTab 
+                invoices={invoices} 
+                accounts={accounts} 
+                onCreateNew={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} 
+                onEdit={handleEditInvoice} 
+                onDelete={handleDeleteInvoice} 
+                refreshData={fetchData} 
+                onSendEmail={(inv) => { setInvoiceToEmail(inv); setActiveTab('sendEmail'); }} 
+                onManagePayment={handleManagePayment} 
+              />
+            )}
 
-              {activeTab === 'managePayment' && invoiceToManage && (
-                <ManagePayment 
-                  invoice={invoiceToManage} 
-                  onBack={() => { setActiveTab('invoices'); setInvoiceToManage(null); }} 
-                  onSuccess={() => { setActiveTab('invoices'); setInvoiceToManage(null); fetchData(); }} 
-                />
-              )}
+            {activeTab === 'managePayment' && invoiceToManage && (
+              <ManagePayment 
+                invoice={invoiceToManage} 
+                onBack={() => { setActiveTab('invoices'); setInvoiceToManage(null); }} 
+                onSuccess={() => { setActiveTab('invoices'); setInvoiceToManage(null); fetchData(); }} 
+              />
+            )}
 
-              {activeTab === 'quotes' && (
-                <QuotesTab 
-                  quotes={quotes} 
-                  onCreateNew={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} 
-                  onEdit={handleEditQuote} 
-                  onEmail={(quote) => { setQuoteToEmail(quote); setActiveTab('sendQuoteEmail'); }}
-                  onDelete={handleDeleteQuote} 
-                  refreshData={fetchData} 
-                />
-              )}
+            {activeTab === 'quotes' && (
+              <QuotesTab 
+                quotes={quotes} 
+                onCreateNew={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} 
+                onEdit={handleEditQuote} 
+                onEmail={(quote) => { setQuoteToEmail(quote); setActiveTab('sendQuoteEmail'); }}
+                onDelete={handleDeleteQuote} 
+                refreshData={fetchData} 
+              />
+            )}
 
-              {activeTab === 'sendEmail' && invoiceToEmail && (
-                <SendInvoiceEmail 
-                  invoice={invoiceToEmail} 
-                  onBack={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
-                  onSend={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
-                />
-              )}
+            {activeTab === 'sendEmail' && invoiceToEmail && (
+              <SendInvoiceEmail 
+                invoice={invoiceToEmail} 
+                onBack={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
+                onSend={() => { setActiveTab('invoices'); setInvoiceToEmail(null); }} 
+              />
+            )}
 
-              {activeTab === 'sendQuoteEmail' && quoteToEmail && (
-                <SendQuoteEmail 
-                  quote={quoteToEmail} 
-                  onBack={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
-                  onSend={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
-                />
-              )}
+            {activeTab === 'sendQuoteEmail' && quoteToEmail && (
+              <SendQuoteEmail 
+                quote={quoteToEmail} 
+                onBack={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
+                onSend={() => { setActiveTab('quotes'); setQuoteToEmail(null); }} 
+              />
+            )}
 
-              {activeTab === 'customers' && <CustomersTab customers={customers} refreshData={fetchData} onViewProfile={handleViewProfile} />}
-              {activeTab === 'clientProfile' && selectedClientId && <ClientProfile clientId={selectedClientId} onBack={() => setActiveTab('customers')} />}
-              {activeTab === 'coa' && <ChartOfAccounts accounts={accounts} refreshData={fetchData} />}
-              {activeTab === 'reports' && <ReportsTab invoices={invoices} />}
-              {activeTab === 'settings' && <SettingsTab />}
-              
-              {activeTab === 'admin' && (
-                <AdminPortal 
-                  onImpersonate={(email, businessName) => { 
-                    setImpersonatedUser({ email, businessName }); 
-                    setActiveTab('dashboard'); 
-                  }} 
-                />
-              )}
+            {activeTab === 'customers' && <CustomersTab customers={customers} refreshData={fetchData} onViewProfile={handleViewProfile} />}
+            {activeTab === 'clientProfile' && selectedClientId && <ClientProfile clientId={selectedClientId} onBack={() => setActiveTab('customers')} />}
+            {activeTab === 'coa' && <ChartOfAccounts accounts={accounts} refreshData={fetchData} />}
+            {activeTab === 'reports' && <ReportsTab invoices={invoices} />}
+            {activeTab === 'settings' && <SettingsTab />}
+            
+            {activeTab === 'admin' && (
+              <AdminPortal 
+                onImpersonate={(email, businessName) => { 
+                  setImpersonatedUser({ email, businessName }); 
+                  setActiveTab('dashboard'); 
+                }} 
+              />
+            )}
 
-              {/* DASHBOARD OVERVIEW */}
-              {activeTab === 'dashboard' && (
-                <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                  
-                  {/* Dashboard Header */}
-                  <div style={{ marginBottom: '35px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div>
-                      <h2 style={{ margin: 0, color: '#0f172a', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{greeting}, {displayGreetingName}</h2>
-                      <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '16px', fontWeight: '400' }}>Here is what's happening with your business today.</p>
-                    </div>
-                    <div style={{ color: '#475569', fontSize: '14px', fontWeight: '600', backgroundColor: '#ffffff', padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                      {today.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </div>
+            {/* DASHBOARD OVERVIEW */}
+            {activeTab === 'dashboard' && (
+              <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                
+                {/* Dashboard Header */}
+                <div style={{ marginBottom: '35px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <div>
+                    <h2 style={{ margin: 0, color: '#0f172a', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{greeting}, {displayGreetingName}</h2>
+                    <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '16px', fontWeight: '400' }}>Here is what's happening with your business today.</p>
                   </div>
-
-                  {/* Top Metrics Row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '35px' }}>
-                    
-                    <CardWrapper style={{ padding: '26px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>💵</div>
-                        <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</h3>
-                      </div>
-                      <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${totalRevenue.toFixed(2)}</div>
-                      <div style={{ fontSize: '13px', color: '#059669', marginTop: '10px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ fontSize: '16px' }}>↑</span> All paid invoices
-                      </div>
-                    </CardWrapper>
-
-                    <CardWrapper style={{ padding: '26px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⏳</div>
-                        <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</h3>
-                      </div>
-                      <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${outstandingBalance.toFixed(2)}</div>
-                      <div style={{ fontSize: '13px', color: '#2563eb', marginTop: '10px', fontWeight: '600' }}>Pending payments</div>
-                    </CardWrapper>
-
-                    <CardWrapper style={{ padding: '26px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⚠️</div>
-                        <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Overdue</h3>
-                      </div>
-                      <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{overdueCount}</div>
-                      <div style={{ fontSize: '13px', color: '#dc2626', marginTop: '10px', fontWeight: '600' }}>Invoices require action</div>
-                    </CardWrapper>
-
-                    <CardWrapper style={{ padding: '26px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>👥</div>
-                        <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Clients</h3>
-                      </div>
-                      <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{totalClients}</div>
-                      <div style={{ fontSize: '13px', color: '#7e22ce', marginTop: '10px', fontWeight: '600' }}>Across directory</div>
-                    </CardWrapper>
-                  </div>
-
-                  {/* Bottom Row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }}>
-                    
-                    <CardWrapper style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 28px', borderBottom: '1px solid #f1f5f9' }}>
-                        <h3 style={{ color: '#0f172a', margin: 0, fontSize: '18px', fontWeight: '800' }}>Recent Invoices</h3>
-                        <button onClick={() => setActiveTab('invoices')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '700', fontSize: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>View All &rarr;</button>
-                      </div>
-                      <div style={{ flexGrow: 1, overflowX: 'auto', padding: '0 10px 10px 10px' }}>
-                        {invoices.length === 0 ? (
-                          <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' }}>No recent invoices. Click "+ New Invoice" to get started.</div>
-                        ) : (
-                          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                            <thead>
-                              <tr style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Invoice #</th>
-                                <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Customer</th>
-                                <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Amount</th>
-                                <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Status</th>
-                                <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9', textAlign: 'right' }}>Document</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {invoices.slice(0, 6).map(inv => {
-                                const isOverdue = new Date(inv.dueDate) < today && inv.status !== 'paid';
-                                return (
-                                  <tr key={inv.id} style={{ transition: 'background-color 0.2s', borderBottom: '1px solid #f8fafc' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                    <td style={{ padding: '16px 20px', fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>{inv.invoiceNumber}</td>
-                                    <td style={{ padding: '16px 20px' }}>
-                                      {inv.customer ? (
-                                        <button onClick={() => handleViewProfile(inv.customer.id)} style={{ background: 'none', border: 'none', color: '#475569', fontWeight: '600', cursor: 'pointer', padding: 0, fontSize: '14px' }} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#475569'}>
-                                          {inv.customer.firstName} {inv.customer.lastName}
-                                        </button>
-                                      ) : <span style={{ color: '#cbd5e1' }}>Unknown</span>}
-                                    </td>
-                                    <td style={{ padding: '16px 20px', color: '#0f172a', fontWeight: '700', fontSize: '14px' }}>${inv.totalAmount.toFixed(2)}</td>
-                                    <td style={{ padding: '16px 20px' }}>
-                                      {inv.status === 'paid' ? (
-                                        <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
-                                        </span>
-                                      ) : inv.status === 'partially_paid' ? (
-                                        <span style={{ backgroundColor: '#fef08a', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div> Partial
-                                        </span>
-                                      ) : isOverdue ? (
-                                        <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#dc2626' }}></div> Overdue
-                                        </span>
-                                      ) : (
-                                        <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }}></div> Unpaid
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                                      <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '12px', backgroundColor: '#eff6ff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>View PDF</a>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        )}
-                      </div>
-                    </CardWrapper>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-                      
-                      {/* Quick Actions */}
-                      <CardWrapper style={{ padding: '24px' }}>
-                        <h3 style={{ color: '#0f172a', margin: '0 0 18px 0', fontSize: '16px', fontWeight: '800' }}>Quick Actions</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
-                            <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>+</div> Create Invoice
-                          </button>
-                          <button onClick={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.backgroundColor = '#f5f3ff'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
-                            <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>📄</div> Create Quote
-                          </button>
-                          <button onClick={() => setActiveTab('customers')} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.backgroundColor = '#eff6ff'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
-                            <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', fontSize: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>👥</div> Manage Clients
-                          </button>
-                        </div>
-                      </CardWrapper>
-
-                      {/* Clients Overview */}
-                      <CardWrapper style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                        <div style={{ padding: '22px 24px 12px 24px' }}>
-                          <h3 style={{ color: '#0f172a', margin: 0, fontSize: '16px', fontWeight: '800' }}>Clients Overview</h3>
-                        </div>
-                        <ul style={{ listStyleType: 'none', padding: '0 12px', margin: 0, flexGrow: 1 }}>
-                          {customers.length === 0 ? (
-                            <li style={{ padding: '30px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '14px' }}>No clients added yet.</li>
-                          ) : (
-                            customers.slice(0, 4).map(customer => {
-                              const initials = `${customer.firstName?.charAt(0) || ''}${customer.lastName?.charAt(0) || ''}`.toUpperCase();
-                              return (
-                                <li key={customer.id}>
-                                  <button onClick={() => handleViewProfile(customer.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: '12px', textAlign: 'left', width: '100%', borderRadius: '8px', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '13px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
-                                      {initials}
-                                    </div>
-                                    <div style={{ flexGrow: 1 }}>
-                                      <strong style={{ color: '#0f172a', fontSize: '14px', display: 'block', fontWeight: '700' }}>{customer.firstName} {customer.lastName}</strong>
-                                      <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>{customer.companyName || 'Individual'}</span>
-                                    </div>
-                                  </button>
-                                </li>
-                              );
-                            })
-                          )}
-                        </ul>
-                        <div style={{ padding: '16px', borderTop: '1px solid #f1f5f9', marginTop: 'auto' }}>
-                          <button onClick={() => setActiveTab('customers')} style={{ width: '100%', padding: '10px', backgroundColor: 'transparent', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', color: '#475569', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; }} onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#475569'; }}>
-                            View Directory
-                          </button>
-                        </div>
-                      </CardWrapper>
-
-                    </div>
+                  <div style={{ color: '#475569', fontSize: '14px', fontWeight: '600', backgroundColor: '#ffffff', padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                    {today.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
                 </div>
-              )}
-            </div>
+
+                {/* Top Metrics Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '35px' }}>
+                  
+                  <CardWrapper style={{ padding: '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>💵</div>
+                      <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</h3>
+                    </div>
+                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${totalRevenue.toFixed(2)}</div>
+                    <div style={{ fontSize: '13px', color: '#059669', marginTop: '10px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontSize: '16px' }}>↑</span> All paid invoices
+                    </div>
+                  </CardWrapper>
+
+                  <CardWrapper style={{ padding: '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⏳</div>
+                      <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</h3>
+                    </div>
+                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${outstandingBalance.toFixed(2)}</div>
+                    <div style={{ fontSize: '13px', color: '#2563eb', marginTop: '10px', fontWeight: '600' }}>Pending payments</div>
+                  </CardWrapper>
+
+                  <CardWrapper style={{ padding: '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⚠️</div>
+                      <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Overdue</h3>
+                    </div>
+                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{overdueCount}</div>
+                    <div style={{ fontSize: '13px', color: '#dc2626', marginTop: '10px', fontWeight: '600' }}>Invoices require action</div>
+                  </CardWrapper>
+
+                  <CardWrapper style={{ padding: '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>👥</div>
+                      <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Clients</h3>
+                    </div>
+                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{totalClients}</div>
+                    <div style={{ fontSize: '13px', color: '#7e22ce', marginTop: '10px', fontWeight: '600' }}>Across directory</div>
+                  </CardWrapper>
+                </div>
+
+                {/* Bottom Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }}>
+                  
+                  <CardWrapper style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 28px', borderBottom: '1px solid #f1f5f9' }}>
+                      <h3 style={{ color: '#0f172a', margin: 0, fontSize: '18px', fontWeight: '800' }}>Recent Invoices</h3>
+                      <button onClick={() => setActiveTab('invoices')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '700', fontSize: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>View All &rarr;</button>
+                    </div>
+                    <div style={{ flexGrow: 1, overflowX: 'auto', padding: '0 10px 10px 10px' }}>
+                      {invoices.length === 0 ? (
+                        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' }}>No recent invoices. Click "+ New Invoice" to get started.</div>
+                      ) : (
+                        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Invoice #</th>
+                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Customer</th>
+                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Amount</th>
+                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Status</th>
+                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9', textAlign: 'right' }}>Document</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {invoices.slice(0, 6).map(inv => {
+                              const isOverdue = new Date(inv.dueDate) < today && inv.status !== 'paid';
+                              return (
+                                <tr key={inv.id} style={{ transition: 'background-color 0.2s', borderBottom: '1px solid #f8fafc' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                  <td style={{ padding: '16px 20px', fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>{inv.invoiceNumber}</td>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    {inv.customer ? (
+                                      <button onClick={() => handleViewProfile(inv.customer.id)} style={{ background: 'none', border: 'none', color: '#475569', fontWeight: '600', cursor: 'pointer', padding: 0, fontSize: '14px' }} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#475569'}>
+                                        {inv.customer.firstName} {inv.customer.lastName}
+                                      </button>
+                                    ) : <span style={{ color: '#cbd5e1' }}>Unknown</span>}
+                                  </td>
+                                  <td style={{ padding: '16px 20px', color: '#0f172a', fontWeight: '700', fontSize: '14px' }}>${inv.totalAmount.toFixed(2)}</td>
+                                  <td style={{ padding: '16px 20px' }}>
+                                    {inv.status === 'paid' ? (
+                                      <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
+                                      </span>
+                                    ) : inv.status === 'partially_paid' ? (
+                                      <span style={{ backgroundColor: '#fef08a', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div> Partial
+                                      </span>
+                                    ) : isOverdue ? (
+                                      <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#dc2626' }}></div> Overdue
+                                      </span>
+                                    ) : (
+                                      <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }}></div> Unpaid
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '12px', backgroundColor: '#eff6ff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>View PDF</a>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </CardWrapper>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                    
+                    {/* Quick Actions */}
+                    <CardWrapper style={{ padding: '24px' }}>
+                      <h3 style={{ color: '#0f172a', margin: '0 0 18px 0', fontSize: '16px', fontWeight: '800' }}>Quick Actions</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
+                          <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>+</div> Create Invoice
+                        </button>
+                        <button onClick={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.backgroundColor = '#f5f3ff'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
+                          <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>📄</div> Create Quote
+                        </button>
+                        <button onClick={() => setActiveTab('customers')} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.backgroundColor = '#eff6ff'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
+                          <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', fontSize: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>👥</div> Manage Clients
+                        </button>
+                      </div>
+                    </CardWrapper>
+
+                    {/* Clients Overview */}
+                    <CardWrapper style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                      <div style={{ padding: '22px 24px 12px 24px' }}>
+                        <h3 style={{ color: '#0f172a', margin: 0, fontSize: '16px', fontWeight: '800' }}>Clients Overview</h3>
+                      </div>
+                      <ul style={{ listStyleType: 'none', padding: '0 12px', margin: 0, flexGrow: 1 }}>
+                        {customers.length === 0 ? (
+                          <li style={{ padding: '30px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '14px' }}>No clients added yet.</li>
+                        ) : (
+                          customers.slice(0, 4).map(customer => {
+                            const initials = `${customer.firstName?.charAt(0) || ''}${customer.lastName?.charAt(0) || ''}`.toUpperCase();
+                            return (
+                              <li key={customer.id}>
+                                <button onClick={() => handleViewProfile(customer.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: '12px', textAlign: 'left', width: '100%', borderRadius: '8px', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '13px', border: '1px solid #bfdbfe', flexShrink: 0 }}>
+                                    {initials}
+                                  </div>
+                                  <div style={{ flexGrow: 1 }}>
+                                    <strong style={{ color: '#0f172a', fontSize: '14px', display: 'block', fontWeight: '700' }}>{customer.firstName} {customer.lastName}</strong>
+                                    <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>{customer.companyName || 'Individual'}</span>
+                                  </div>
+                                </button>
+                              </li>
+                            );
+                          })
+                        )}
+                      </ul>
+                      <div style={{ padding: '16px', borderTop: '1px solid #f1f5f9', marginTop: 'auto' }}>
+                        <button onClick={() => setActiveTab('customers')} style={{ width: '100%', padding: '10px', backgroundColor: 'transparent', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', color: '#475569', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; }} onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#475569'; }}>
+                          View Directory
+                        </button>
+                      </div>
+                    </CardWrapper>
+
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* FOOTER */}
-          <div style={{ width: '100%', textAlign: 'center', padding: '20px 0', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: '500', position: 'sticky', bottom: 0, zIndex: 5 }}>
+          {/* 🔥 MOVED: Footer is now outside the scrollable content area to stick to the bottom */}
+        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '14px', fontWeight: '500', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
             © 2026 Riska's Finance. All Rights Reserved.<br />
             <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>
-          </div>
-
         </div>
+      </div>
       </div>
     </div>
   );

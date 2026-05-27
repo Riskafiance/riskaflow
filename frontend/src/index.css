@@ -5,8 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: 
-#f8fafc;
+  background-color: #f8fafc;
 }
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -40,22 +39,27 @@ code {
   }
 }
 /* Extra small phones */
-@media (max-width: 900px) {
+@media (max-width: 950px) {
   .CardWrapper {
     padding: 16px !important;
   }
 }
-/* --- MOBILE ZOOM FIX --- */
-/* Zoom out the phone view specifically */
+/* --- MOBILE ZOOM FIX (iPhone) --- */
+/* Uses font-size scaling instead of zoom so 100vh stays correct on Safari */
 @media (max-width: 990px) {
   html {
-    zoom: 1.00; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
+    font-size: 55%; /* Tweak between 45%–70% to shrink/grow the mobile UI */
+  }
+  html, body, #root {
+    width: 100%;
+    height: 100dvh; /* dvh accounts for Safari's collapsible address bar */
+    overflow: hidden;
   }
 }
 /* --- DESKTOP ZOOM FIX --- */
 /* Permanently zoom out the desktop view to feel like 65% zoom */
 @media (min-width: 1024px) {
   html {
-    zoom: 1.00;
+    zoom: 0.75;
   }
 }

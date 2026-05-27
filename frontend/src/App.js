@@ -695,7 +695,7 @@ function App() {
           </div>
 
           {/* FOOTER */}
-          <div style={{ width: '100%', textAlign: 'center', padding: '20px 0', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: '500', flexShrink: 0 }}>
+          <div style={{ width: '100%', textAlign: 'center', padding: '20px 0', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: '500', position: 'sticky', bottom: 0, zIndex: 5 }}>
             © 2026 Riska's Finance. All Rights Reserved.<br />
             <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>
           </div>

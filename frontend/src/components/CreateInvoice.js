@@ -1,10 +1,3 @@
-Here is your completely updated **`CreateInvoice.js`** file.
-
-I have replaced the static single-item inputs with a highly professional, dynamic table that allows you to add as many products or services as you want—just like QuickBooks! It auto-calculates the subtotal based on the `Quantity` and `Rate` of every single line item, and your Tax and Credit Card fee checkboxes will perfectly calculate on top of the new dynamic subtotal.
-
-Replace everything inside `frontend/src/components/CreateInvoice.js` with this exact code:
-
-```jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { auth } from '../firebase'; 
@@ -311,5 +304,3 @@ const CreateInvoice = ({ customers, accounts = [], onCancel, onSuccess, invoiceT
 };
 
 export default CreateInvoice;
-
-```

@@ -5,19 +5,19 @@ import { auth } from './firebase';
 
 import Login from './components/Login';
 import CreateInvoice from './components/CreateInvoice';
-import CreateQuote from './components/CreateQuote'; // 🔥 NEW: Component to create quotes
+import CreateQuote from './components/CreateQuote'; 
 import CustomersTab from './components/CustomersTab';
 import ClientProfile from './components/ClientProfile';
 import InvoicesTab from './components/InvoicesTab';
-import QuotesTab from './components/QuotesTab'; // 🔥 NEW: The Quotes dashboard tab
+import QuotesTab from './components/QuotesTab'; 
 import ChartOfAccounts from './components/ChartOfAccounts';
 import ReportsTab from './components/ReportsTab';
 import SettingsTab from './components/SettingsTab';
 import SendInvoiceEmail from './components/SendInvoiceEmail'; 
-import SendQuoteEmail from './components/SendQuoteEmail'; // 🔥 NEW: Component to email quotes
+import SendQuoteEmail from './components/SendQuoteEmail'; 
 import PaymentSuccess from './components/PaymentSuccess';
 import AdminPortal from './components/AdminPortal';
-import ManagePayment from './components/ManagePayment'; // 🔥 NEW: Import the Manager
+import ManagePayment from './components/ManagePayment'; 
 
 function App() {
   // --- AUTHENTICATION STATE ---
@@ -28,19 +28,22 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedClientId, setSelectedClientId] = useState(null); 
   const [invoiceToEdit, setInvoiceToEdit] = useState(null); 
-  const [quoteToEdit, setQuoteToEdit] = useState(null); // 🔥 NEW: Track quotes being edited
+  const [quoteToEdit, setQuoteToEdit] = useState(null); 
   const [invoiceToEmail, setInvoiceToEmail] = useState(null); 
-  const [quoteToEmail, setQuoteToEmail] = useState(null); // 🔥 NEW: Track quotes being emailed
-  const [invoiceToManage, setInvoiceToManage] = useState(null); // 🔥 NEW: Track which invoice to manage
+  const [quoteToEmail, setQuoteToEmail] = useState(null); 
+  const [invoiceToManage, setInvoiceToManage] = useState(null); 
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
-  const [quotes, setQuotes] = useState([]); // 🔥 NEW: State for Quotes
+  const [quotes, setQuotes] = useState([]); 
   const [accounts, setAccounts] = useState([]);
 
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  
+  // 🔥 NEW: State for collapsible sidebar
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // State for tracking if you are in "Expert Mode"
   const [impersonatedUser, setImpersonatedUser] = useState(null);
@@ -68,7 +71,6 @@ function App() {
       .then(res => setInvoices(res.data))
       .catch(err => console.error("Error fetching invoices:", err));
 
-    // 🔥 NEW: Fetch Quotes from the backend
     axios.get(`https://riskaflow.onrender.com/api/quotes?email=${userEmail}`)
       .then(res => setQuotes(res.data))
       .catch(err => console.error("Error fetching quotes:", err));
@@ -116,7 +118,6 @@ function App() {
     setActiveTab('createQuote');
   };
 
-  // 🔥 NEW: Handler to open the Payment Manager
   const handleManagePayment = (inv) => {
     setInvoiceToManage(inv);
     setActiveTab('managePayment');
@@ -165,7 +166,6 @@ function App() {
   let navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> },
     { id: 'invoices', label: 'Invoices', icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> },
-    // 🔥 NEW: Quotes Tab inside the Navigation
     { id: 'quotes', label: 'Quotes', icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> },
     { id: 'customers', label: 'Clients', icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
     { id: 'coa', label: 'Chart of Accounts', icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> },
@@ -361,20 +361,38 @@ function App() {
       <div style={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
         
         {/* ⬅️ SIDEBAR NAVIGATION */}
-        <div style={{ width: '270px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', padding: '28px 20px', flexShrink: 0, zIndex: 10, overflowY: 'auto' }}>
+        <div style={{ width: isSidebarCollapsed ? '80px' : '270px', transition: 'width 0.3s ease', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', padding: isSidebarCollapsed ? '28px 10px' : '28px 20px', flexShrink: 0, zIndex: 10, overflowY: 'auto', overflowX: 'hidden' }}>
           
-          <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '900', fontSize: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)' }}>
-              C
+          <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between' }}>
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: isSidebarCollapsed ? 'pointer' : 'default' }}
+              onClick={() => isSidebarCollapsed && setIsSidebarCollapsed(false)}
+              title={isSidebarCollapsed ? "Expand Sidebar" : ""}
+            >
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '900', fontSize: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)', flexShrink: 0 }}>
+                C
+              </div>
+              {!isSidebarCollapsed && <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: '900', margin: 0, letterSpacing: '-0.04em', whiteSpace: 'nowrap' }}>ClearPay</h1>}
             </div>
-            <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: '900', margin: 0, letterSpacing: '-0.04em' }}>ClearPay</h1>
+            
+            {!isSidebarCollapsed && (
+              <button 
+                onClick={() => setIsSidebarCollapsed(true)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.2s', flexShrink: 0 }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
+                title="Collapse Sidebar"
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+            )}
           </div>
           
           {activeTab !== 'createInvoice' && activeTab !== 'createQuote' && (
-            <div style={{ padding: '0 8px', marginBottom: '35px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s', letterSpacing: '0.02em' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }}>
+            <div style={{ padding: isSidebarCollapsed ? '0' : '0 8px', marginBottom: '35px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: isSidebarCollapsed ? '14px 0' : '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s', letterSpacing: '0.02em' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }} title={isSidebarCollapsed ? "New Invoice" : ""}>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                New Invoice
+                {!isSidebarCollapsed && "New Invoice"}
               </button>
             </div>
           )}
@@ -385,20 +403,24 @@ function App() {
               return (
                 <button
                   key={item.id}
+                  title={isSidebarCollapsed ? item.label : ""}
                   onClick={() => { setActiveTab(item.id); setInvoiceToEdit(null); setQuoteToEdit(null); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '14px', width: '100%', textAlign: 'left',
+                    justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                     backgroundColor: isActive ? (item.id === 'admin' ? '#eff6ff' : '#ecfdf5') : 'transparent',
                     border: 'none', fontSize: '15px', fontWeight: isActive ? '700' : '600',
-                    color: isActive ? (item.id === 'admin' ? '#1d4ed8' : '#047857') : '#64748b', cursor: 'pointer', padding: '12px 16px',
+                    color: isActive ? (item.id === 'admin' ? '#1d4ed8' : '#047857') : '#64748b', cursor: 'pointer', padding: isSidebarCollapsed ? '12px 0' : '12px 16px',
                     borderRadius: '10px', transition: 'all 0.2s ease',
-                    boxShadow: isActive ? `inset 4px 0 0 ${item.id === 'admin' ? '#2563eb' : '#10b981'}` : 'none'
+                    boxShadow: isActive && !isSidebarCollapsed ? `inset 4px 0 0 ${item.id === 'admin' ? '#2563eb' : '#10b981'}` : 'none'
                   }}
                   onMouseOver={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; } }}
                   onMouseOut={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; } }}
                 >
-                  {item.icon}
-                  {item.label}
+                  <div style={{ flexShrink: 0, display: 'flex' }}>
+                    {item.icon}
+                  </div>
+                  {!isSidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
                 </button>
               );
             })}
@@ -423,11 +445,10 @@ function App() {
                 onDelete={handleDeleteInvoice} 
                 refreshData={fetchData} 
                 onSendEmail={(inv) => { setInvoiceToEmail(inv); setActiveTab('sendEmail'); }} 
-                onManagePayment={handleManagePayment} // 🔥 NEW: Pass handler to the Invoices tab
+                onManagePayment={handleManagePayment} 
               />
             )}
 
-            {/* 🔥 NEW: Render the Payment Manager Component */}
             {activeTab === 'managePayment' && invoiceToManage && (
               <ManagePayment 
                 invoice={invoiceToManage} 

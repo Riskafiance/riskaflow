@@ -51,7 +51,7 @@ code {
     font-size: 45%; /* Tweak between 45%–70% to shrink/grow the mobile UI */
   }
   html, body, #root {
-    width: 100%;
+    width: 45%;
     height: 100dvh; /* dvh accounts for Safari's collapsible address bar */
     overflow: hidden;
   }

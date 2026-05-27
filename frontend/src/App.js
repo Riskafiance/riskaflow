@@ -439,8 +439,10 @@ function App() {
         {/* ➡️ MAIN CONTENT AREA */}
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
           
+          {/* 🔧 FIX: Removed flexGrow:1 and flexDirection:column from inner wrapper so content */}
+          {/* sits naturally and the footer follows immediately after — no empty gap. */}
           <div style={{ padding: '40px 50px' }}>
-  <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
               {activeTab === 'createInvoice' && <CreateInvoice customers={customers} accounts={accounts} onCancel={() => { setActiveTab('invoices'); setInvoiceToEdit(null); }} onSuccess={handleInvoiceSuccess} invoiceToEdit={invoiceToEdit} />}
               
@@ -692,7 +694,7 @@ function App() {
             </div>
           </div>
 
-          {/* FOOTER - Now full width and pinned to bottom */}
+          {/* FOOTER */}
           <div style={{ width: '100%', textAlign: 'center', padding: '20px 0', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: '500', flexShrink: 0 }}>
             © 2026 Riska's Finance. All Rights Reserved.<br />
             <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>

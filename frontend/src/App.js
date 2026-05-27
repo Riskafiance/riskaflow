@@ -365,14 +365,23 @@ function App() {
           
           <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between' }}>
             <div 
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: isSidebarCollapsed ? 'pointer' : 'default' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: isSidebarCollapsed ? 'pointer' : 'default', overflow: 'hidden' }}
               onClick={() => isSidebarCollapsed && setIsSidebarCollapsed(false)}
               title={isSidebarCollapsed ? "Expand Sidebar" : ""}
             >
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '900', fontSize: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)', flexShrink: 0 }}>
-                C
-              </div>
-              {!isSidebarCollapsed && <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: '900', margin: 0, letterSpacing: '-0.04em', whiteSpace: 'nowrap' }}>ClearPay</h1>}
+              <img 
+                src="/clearpay.png" 
+                alt="ClearPay Logo" 
+                style={{ 
+                  height: '40px', 
+                  width: isSidebarCollapsed ? '40px' : 'auto', 
+                  maxWidth: '180px', 
+                  objectFit: 'contain', 
+                  objectPosition: 'left', 
+                  transition: 'all 0.3s ease',
+                  flexShrink: 0 
+                }} 
+              />
             </div>
             
             {!isSidebarCollapsed && (

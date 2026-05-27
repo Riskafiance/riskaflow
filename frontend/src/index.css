@@ -46,7 +46,7 @@ code {
 }
 /* --- MOBILE ZOOM FIX (iPhone) --- */
 /* Uses zoom to shrink the UI so it fits perfectly on mobile screens */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   html, body {
     zoom: 0.80; /* Shrinks the app by 50% on phones */
     -moz-transform: scale(0.50); /* Fallback for Firefox */
@@ -54,7 +54,7 @@ code {
   }
   html, body, #root {
     width: 100%;
-    height: 200dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
+    height: 100dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
     overflow-x: hidden;
   }
 }

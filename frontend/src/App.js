@@ -439,8 +439,8 @@ function App() {
         {/* ➡️ MAIN CONTENT AREA */}
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
           
-          <div style={{ flexGrow: 1, padding: '40px 50px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', flexGrow: 1 }}>
+          <div style={{ padding: '40px 50px' }}>
+  <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
               {activeTab === 'createInvoice' && <CreateInvoice customers={customers} accounts={accounts} onCancel={() => { setActiveTab('invoices'); setInvoiceToEdit(null); }} onSuccess={handleInvoiceSuccess} invoiceToEdit={invoiceToEdit} />}
               

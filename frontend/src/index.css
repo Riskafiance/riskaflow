@@ -54,7 +54,7 @@ code {
   }
   html, body, #root {
     width: 100%;
-    height: 10dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
+    height: 300dvh; /* Doubled to account for the 50% zoom so it reaches the bottom */
     overflow-x: hidden;
   }
 }

@@ -373,9 +373,9 @@ function App() {
                 src="/clearpay.png" 
                 alt="ClearPay Logo" 
                 style={{ 
-                  height: '60px', 
-                  width: isSidebarCollapsed ? '40px' : 'auto', 
-                  maxWidth: '220px', 
+                  height: '100px', 
+                  width: isSidebarCollapsed ? '80px' : 'auto', 
+                  maxWidth: '320px', 
                   objectFit: 'contain', 
                   objectPosition: 'left', 
                   transition: 'all 0.3s ease',

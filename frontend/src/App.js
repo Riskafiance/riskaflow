@@ -690,13 +690,12 @@ function App() {
             )}
           </div>
 
-          {/* FOOTER */}
-          <div style={{ textAlign: 'center', padding: '40px 0 20px 0', marginTop: 'auto', color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
+          {/* 🔥 MOVED: Footer is now outside the scrollable content area to stick to the bottom */}
+        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '14px', fontWeight: '500', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
             © 2026 Riska's Finance. All Rights Reserved.<br />
             <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>
-          </div>
-
         </div>
+      </div>
       </div>
     </div>
   );

@@ -48,11 +48,7 @@ code {
 /* Zoom out the phone view specifically */
 @media (max-width: 1000px) {
   html {
-    zoom: 0.7; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
-  }
-  html, body, #root {
-    height: calc(100% / 0.7);
-    min-height: calc(100vh / 0.7);
+    zoom: 1.00; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
   }
 }
 /* --- DESKTOP ZOOM FIX --- */

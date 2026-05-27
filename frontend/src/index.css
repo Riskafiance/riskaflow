@@ -40,14 +40,14 @@ code {
   }
 }
 /* Extra small phones */
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .CardWrapper {
     padding: 16px !important;
   }
 }
 /* --- MOBILE ZOOM FIX --- */
 /* Zoom out the phone view specifically */
-@media (max-width: 950px) {
+@media (max-width: 990px) {
   html {
     zoom: 1.00; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
   }

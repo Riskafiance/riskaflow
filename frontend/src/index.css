@@ -61,8 +61,4 @@ code {
   html {
     zoom: 0.75;
   }
-  html, body, #root {
-    height: calc(100% / 0.75);
-    min-height: calc(100vh / 0.75);
-  }
 }

@@ -46,7 +46,7 @@ code {
 }
 /* --- MOBILE ZOOM FIX --- */
 /* Zoom out the phone view specifically */
-@media (max-width: 950px) {
+@media (max-width: 1000px) {
   html {
     zoom: 0.7; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
   }

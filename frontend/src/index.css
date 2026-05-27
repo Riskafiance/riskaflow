@@ -48,7 +48,7 @@ code {
 /* Uses font-size scaling instead of zoom so 100vh stays correct on Safari */
 @media (max-width: 990px) {
   html {
-    font-size: 55%; /* Tweak between 45%–70% to shrink/grow the mobile UI */
+    font-size: 45%; /* Tweak between 45%–70% to shrink/grow the mobile UI */
   }
   html, body, #root {
     width: 100%;
@@ -60,6 +60,6 @@ code {
 /* Permanently zoom out the desktop view to feel like 65% zoom */
 @media (min-width: 1024px) {
   html {
-    zoom: 0.75;
+    zoom: 1.00;
   }
 }

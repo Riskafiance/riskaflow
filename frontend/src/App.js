@@ -17,6 +17,7 @@ import SendInvoiceEmail from './components/SendInvoiceEmail';
 import SendQuoteEmail from './components/SendQuoteEmail'; // 🔥 NEW: Component to email quotes
 import PaymentSuccess from './components/PaymentSuccess';
 import AdminPortal from './components/AdminPortal';
+import ManagePayment from './components/ManagePayment'; // 🔥 NEW: Import the Manager
 
 function App() {
   // --- AUTHENTICATION STATE ---
@@ -30,6 +31,7 @@ function App() {
   const [quoteToEdit, setQuoteToEdit] = useState(null); // 🔥 NEW: Track quotes being edited
   const [invoiceToEmail, setInvoiceToEmail] = useState(null); 
   const [quoteToEmail, setQuoteToEmail] = useState(null); // 🔥 NEW: Track quotes being emailed
+  const [invoiceToManage, setInvoiceToManage] = useState(null); // 🔥 NEW: Track which invoice to manage
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [quotes, setQuotes] = useState([]); // 🔥 NEW: State for Quotes
@@ -112,6 +114,12 @@ function App() {
   const handleEditQuote = (quote) => {
     setQuoteToEdit(quote);
     setActiveTab('createQuote');
+  };
+
+  // 🔥 NEW: Handler to open the Payment Manager
+  const handleManagePayment = (inv) => {
+    setInvoiceToManage(inv);
+    setActiveTab('managePayment');
   };
 
   const handleDeleteInvoice = (id) => {
@@ -333,7 +341,6 @@ function App() {
                 onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f0f9ff' }} 
                 onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
               >
-                {/* 🔥 REBRAND: ClearPay */}
                 Manage your ClearPay Account
               </button>
 
@@ -358,10 +365,8 @@ function App() {
           
           <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '900', fontSize: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)' }}>
-              {/* 🔥 REBRAND: ClearPay Icon */}
               C
             </div>
-            {/* 🔥 REBRAND: ClearPay Title */}
             <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: '900', margin: 0, letterSpacing: '-0.04em' }}>ClearPay</h1>
           </div>
           
@@ -407,7 +412,6 @@ function App() {
 
             {activeTab === 'createInvoice' && <CreateInvoice customers={customers} accounts={accounts} onCancel={() => { setActiveTab('invoices'); setInvoiceToEdit(null); }} onSuccess={handleInvoiceSuccess} invoiceToEdit={invoiceToEdit} />}
             
-            {/* 🔥 NEW: Create Quote Screen */}
             {activeTab === 'createQuote' && <CreateQuote customers={customers} onCancel={() => { setActiveTab('quotes'); setQuoteToEdit(null); }} onSuccess={handleQuoteSuccess} quoteToEdit={quoteToEdit} />}
             
             {activeTab === 'invoices' && (
@@ -419,10 +423,19 @@ function App() {
                 onDelete={handleDeleteInvoice} 
                 refreshData={fetchData} 
                 onSendEmail={(inv) => { setInvoiceToEmail(inv); setActiveTab('sendEmail'); }} 
+                onManagePayment={handleManagePayment} // 🔥 NEW: Pass handler to the Invoices tab
               />
             )}
 
-            {/* 🔥 NEW: Quotes Tab Rendering */}
+            {/* 🔥 NEW: Render the Payment Manager Component */}
+            {activeTab === 'managePayment' && invoiceToManage && (
+              <ManagePayment 
+                invoice={invoiceToManage} 
+                onBack={() => { setActiveTab('invoices'); setInvoiceToManage(null); }} 
+                onSuccess={() => { setActiveTab('invoices'); setInvoiceToManage(null); fetchData(); }} 
+              />
+            )}
+
             {activeTab === 'quotes' && (
               <QuotesTab 
                 quotes={quotes} 
@@ -442,7 +455,6 @@ function App() {
               />
             )}
 
-            {/* 🔥 NEW: Render the Email Quote screen */}
             {activeTab === 'sendQuoteEmail' && quoteToEmail && (
               <SendQuoteEmail 
                 quote={quoteToEmail} 
@@ -526,7 +538,6 @@ function App() {
                 {/* Bottom Row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }}>
                   
-                  {/* Recent Invoices Table */}
                   <CardWrapper style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 28px', borderBottom: '1px solid #f1f5f9' }}>
                       <h3 style={{ color: '#0f172a', margin: 0, fontSize: '18px', fontWeight: '800' }}>Recent Invoices</h3>
@@ -565,6 +576,10 @@ function App() {
                                       <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
                                       </span>
+                                    ) : inv.status === 'partially_paid' ? (
+                                      <span style={{ backgroundColor: '#fef08a', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div> Partial
+                                      </span>
                                     ) : isOverdue ? (
                                       <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#dc2626' }}></div> Overdue
@@ -596,7 +611,6 @@ function App() {
                         <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.backgroundColor = '#ecfdf5'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
                           <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>+</div> Create Invoice
                         </button>
-                        {/* 🔥 NEW: Quick Action for Quotes */}
                         <button onClick={() => { setQuoteToEdit(null); setActiveTab('createQuote'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.backgroundColor = '#f5f3ff'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}>
                           <div style={{ backgroundColor: 'white', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6', fontSize: '18px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>📄</div> Create Quote
                         </button>

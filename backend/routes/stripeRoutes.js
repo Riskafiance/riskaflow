@@ -48,4 +48,48 @@ router.post('/onboard', async (req, res) => {
   }
 });
 
+// 🔥 NEW: Generate a Checkout Session for an Invoice (Supports Partial Payments)
+router.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { invoiceId, customAmount } = req.body; // Accept customAmount from the frontend
+
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { customer: true }
+    });
+
+    if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+    // 🔥 Use the custom deposit/partial amount if provided; otherwise default to the remaining balance
+    const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+    const paymentAmount = customAmount ? parseFloat(customAmount) : remainingBalance;
+
+    if (paymentAmount <= 0) {
+      return res.status(400).json({ error: "Invoice is already fully paid." });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Payment for Invoice ${invoice.invoiceNumber}`,
+          },
+          unit_amount: Math.round(paymentAmount * 100), // Stripe expects cents
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `https://clearpay.riskasfinance.com?paid_invoice_id=${invoice.id}&amount_paid=${paymentAmount}`, // Pass payment info back
+      cancel_url: `https://clearpay.riskasfinance.com`,
+    });
+
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error("STRIPE SESSION ERROR:", error);
+    res.status(500).json({ error: "Failed to initialize Stripe checkout" });
+  }
+});
+
 module.exports = router;

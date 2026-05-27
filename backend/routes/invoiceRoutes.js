@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 🔥 NEW: Helper function to generate the unique 'RF-XXXXXX' Firm Code
+// Helper function to generate the unique 'RF-XXXXXX' Firm Code
 const generateFlowCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = 'RF-';
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { 
-      invoiceNumber, customerId, dueDate, status, subTotal, taxTotal, totalAmount, items, customerNote, 
+      invoiceNumber, customerId, dueDate, status, subTotal, taxTotal, totalAmount, amountPaid, items, customerNote, 
       userEmail, userUid 
     } = req.body;
     
@@ -72,7 +72,6 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // 🔥 THE FIX: Smart Auto-Incrementing Invoice Logic
     let finalInvoiceNumber = invoiceNumber;
 
     if (!finalInvoiceNumber || finalInvoiceNumber.trim() === '') {
@@ -104,6 +103,7 @@ router.post('/', async (req, res) => {
         subTotal: parseFloat(subTotal) || 0,
         taxTotal: parseFloat(taxTotal) || 0,
         totalAmount: parseFloat(totalAmount) || 0,
+        amountPaid: parseFloat(amountPaid) || 0, // 🔥 NEW: Track amount paid
         items: itemsString,
         customerNote: customerNote || '', 
         userId: user.id 
@@ -119,7 +119,7 @@ router.post('/', async (req, res) => {
 // PUT to update an invoice
 router.put('/:id', async (req, res) => {
   try {
-    const { invoiceNumber, customerId, dueDate, status, subTotal, taxTotal, totalAmount, items, customerNote } = req.body;
+    const { invoiceNumber, customerId, dueDate, status, subTotal, taxTotal, totalAmount, amountPaid, items, customerNote } = req.body;
     const itemsString = Array.isArray(items) ? JSON.stringify(items) : items;
 
     const existingInvoice = await prisma.invoice.findUnique({ where: { id: req.params.id } });
@@ -151,6 +151,7 @@ router.put('/:id', async (req, res) => {
     if (subTotal !== undefined) updateData.subTotal = parseFloat(subTotal);
     if (taxTotal !== undefined) updateData.taxTotal = parseFloat(taxTotal);
     if (totalAmount !== undefined) updateData.totalAmount = parseFloat(totalAmount);
+    if (amountPaid !== undefined) updateData.amountPaid = parseFloat(amountPaid); // 🔥 NEW: Support manual amountPaid updates
     if (items) updateData.items = itemsString;
     if (customerNote !== undefined) updateData.customerNote = customerNote; 
 
@@ -201,6 +202,7 @@ router.get('/:id/pdf', async (req, res) => {
 // 🔥 Generate a Stripe Link for In-Person Payments 
 router.post('/:id/checkout-link', async (req, res) => {
   try {
+    const { customAmount } = req.body; // 🔥 NEW: Allow frontend to pass a specific deposit amount
     const invoice = await prisma.invoice.findUnique({
       where: { id: req.params.id },
       include: { customer: true, user: true }
@@ -212,10 +214,17 @@ router.post('/:id/checkout-link', async (req, res) => {
       return res.status(403).json({ error: "You must connect a bank account in Settings before accepting online payments." });
     }
 
-    // 🔥 SAAS SECURITY FIX: Check if they actually finished setting up the account
     const stripeAccountDetails = await stripe.accounts.retrieve(invoice.user.stripeAccountId);
     if (!stripeAccountDetails.charges_enabled) {
       return res.status(403).json({ error: "Your Stripe account setup is incomplete. Please finish onboarding in Settings." });
+    }
+
+    // 🔥 Calculate the remaining balance
+    const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+    const paymentAmount = customAmount ? parseFloat(customAmount) : remainingBalance;
+
+    if (paymentAmount <= 0) {
+      return res.status(400).json({ error: "Invoice is already fully paid." });
     }
 
     const bizName = invoice.user?.businessName || (invoice.user?.firstName ? `${invoice.user.firstName} ${invoice.user.lastName}` : "Business Owner");
@@ -226,15 +235,15 @@ router.post('/:id/checkout-link', async (req, res) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `Invoice ${invoice.invoiceNumber} - ${bizName}`,
+            name: `Payment for Invoice ${invoice.invoiceNumber} - ${bizName}`,
             description: `Professional Services for ${invoice.customer.firstName} ${invoice.customer.lastName}`,
           },
-          unit_amount: Math.round(invoice.totalAmount * 100), 
+          unit_amount: Math.round(paymentAmount * 100), // Charge the partial/remaining amount
         },
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `https://riskaflow.vercel.app/?paid_invoice_id=${invoice.id}`, 
+      success_url: `https://riskaflow.vercel.app/?paid_invoice_id=${invoice.id}&amount_paid=${paymentAmount}`, 
       cancel_url: `https://riskaflow.vercel.app/`,
     };
 
@@ -266,35 +275,36 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
 
     const bizName = invoice.user?.businessName || (invoice.user?.firstName ? `${invoice.user.firstName} ${invoice.user.lastName}` : "Business Owner");
     const bizAddress = invoice.user?.businessAddress || "Online Business";
+    const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
 
     let finalPaymentUrl = "";
     
-    // User provided a manual payment link (like Venmo, Zelle, etc.)
+    // User provided a manual payment link
     if (paymentLink && paymentLink.trim() !== "") {
       finalPaymentUrl = paymentLink;
     } 
-    // 🔥 SAAS SECURITY FIX: Only auto-generate the Stripe checkout if they have a fully setup Stripe account
+    // Auto-generate the Stripe checkout if they have a fully setup Stripe account
     else if (invoice.user?.stripeAccountId) {
       try {
         const stripeAccountDetails = await stripe.accounts.retrieve(invoice.user.stripeAccountId);
         
-        // ONLY generate the link if they are fully permitted to receive money
-        if (stripeAccountDetails.charges_enabled) {
+        // ONLY generate the link if they are fully permitted to receive money AND there is a balance
+        if (stripeAccountDetails.charges_enabled && remainingBalance > 0) {
           const checkoutParams = {
             payment_method_types: ['card'],
             line_items: [{
               price_data: {
                 currency: 'usd',
                 product_data: {
-                  name: `Invoice ${invoice.invoiceNumber} - ${bizName}`,
+                  name: `Payment for Invoice ${invoice.invoiceNumber} - ${bizName}`,
                   description: `Professional Services for ${invoice.customer.firstName} ${invoice.customer.lastName}`,
                 },
-                unit_amount: Math.round(invoice.totalAmount * 100), 
+                unit_amount: Math.round(remainingBalance * 100), 
               },
               quantity: 1,
             }],
             mode: 'payment',
-            success_url: `https://riskaflow.vercel.app/?paid_invoice_id=${invoice.id}`, 
+            success_url: `https://riskaflow.vercel.app/?paid_invoice_id=${invoice.id}&amount_paid=${remainingBalance}`, 
             cancel_url: `https://riskaflow.vercel.app/`,
           };
 
@@ -303,8 +313,6 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
           });
           
           finalPaymentUrl = session.url;
-        } else {
-          console.log(`User ${invoice.user.email} has incomplete Stripe onboarding. Hiding payment link.`);
         }
       } catch (stripeError) {
         console.error("Stripe Session Error:", stripeError);
@@ -313,15 +321,14 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
 
     const formattedMessage = messageBody 
       ? messageBody.replace(/\n/g, '<br>') 
-      : `<p>Your invoice from ${bizName} for <strong>$${invoice.totalAmount.toFixed(2)}</strong> is attached to this email.</p>`;
+      : `<p>Your invoice from ${bizName} has a remaining balance of <strong>$${remainingBalance.toFixed(2)}</strong>. A PDF copy is attached to this email.</p>`;
 
-    // If finalPaymentUrl is empty (because they have no Stripe or incomplete setup), this button just won't render
     let payButtonHtml = '';
-    if (finalPaymentUrl) {
+    if (finalPaymentUrl && remainingBalance > 0) {
       payButtonHtml = `
         <div style="text-align: center; margin: 30px 0;">
           <a href="${finalPaymentUrl}" style="background-color: #10b981; color: white; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
-            Pay Invoice Online
+            Pay Remaining Balance ($${remainingBalance.toFixed(2)})
           </a>
         </div>
       `;
@@ -381,18 +388,45 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
 });
 
 
-// Handle Successful Payment Redirect
+// 🔥 Handle Successful Payment Redirect (Supports Partials)
 router.post('/:id/mark-paid', express.json(), async (req, res) => {
   try {
     const invoiceId = req.params.id;
+    const { amountPaidThisTime } = req.body; // Sent from frontend on success
+
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { customer: true, user: true }
+    });
+
+    if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+    // Calculate new total paid and determine if fully paid
+    const paymentAmount = amountPaidThisTime ? parseFloat(amountPaidThisTime) : (invoice.totalAmount - (invoice.amountPaid || 0));
+    const newAmountPaid = (invoice.amountPaid || 0) + paymentAmount;
+    
+    let newStatus = 'partially_paid';
+    if (newAmountPaid >= invoice.totalAmount) {
+      newStatus = 'paid';
+    }
 
     const updatedInvoice = await prisma.invoice.update({
       where: { id: invoiceId },
-      data: { status: 'paid' },
+      data: { 
+        status: newStatus,
+        amountPaid: newAmountPaid 
+      },
       include: { customer: true, user: true }
     });
 
     const bizName = updatedInvoice.user?.businessName || (updatedInvoice.user?.firstName ? `${updatedInvoice.user.firstName} ${updatedInvoice.user.lastName}` : "Business Owner");
+    const remainingBalance = updatedInvoice.totalAmount - updatedInvoice.amountPaid;
+
+    const isFullyPaid = newStatus === 'paid';
+    const titleText = isFullyPaid ? "Payment Successful!" : "Partial Payment Received!";
+    const balanceText = isFullyPaid 
+        ? "Your account is now settled. Thank you for your business!" 
+        : `Your remaining balance is $${remainingBalance.toFixed(2)}.`;
 
     const mailOptions = {
       from: `"${bizName}" <riskas.finances@gmail.com>`, 
@@ -403,11 +437,11 @@ router.post('/:id/mark-paid', express.json(), async (req, res) => {
           <div style="background-color: #d1fae5; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 30px;">
             ✅
           </div>
-          <h1 style="color: #065f46; margin-top: 0;">Payment Successful!</h1>
+          <h1 style="color: #065f46; margin-top: 0;">${titleText}</h1>
           <p style="font-size: 16px;">Hi <strong>${updatedInvoice.customer.firstName}</strong>,</p>
-          <p style="font-size: 16px; line-height: 1.5;">We have successfully received your payment of <strong>$${updatedInvoice.totalAmount.toFixed(2)}</strong> for Invoice ${updatedInvoice.invoiceNumber}.</p>
+          <p style="font-size: 16px; line-height: 1.5;">We have successfully received your payment of <strong>$${paymentAmount.toFixed(2)}</strong> for Invoice ${updatedInvoice.invoiceNumber}.</p>
           <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 25px 0;">
-            <p style="margin: 0; color: #475569;">Your account is now settled. Thank you for your business!</p>
+            <p style="margin: 0; color: #475569;">${balanceText}</p>
           </div>
           <p style="color: #9ca3af; font-size: 12px; margin-top: 30px;">${bizName}</p>
         </div>
@@ -415,7 +449,7 @@ router.post('/:id/mark-paid', express.json(), async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    res.json({ success: true, message: "Marked as paid and email sent!" });
+    res.json({ success: true, message: "Payment recorded and email sent!" });
 
   } catch (error) {
     console.error("Payment Success Error:", error);
@@ -574,11 +608,16 @@ function buildPDFContent(doc, invoice) {
   doc.font('Helvetica-Bold').text("TOTAL", totalsX, bottomY + 30, { width: 100 });
   doc.font('Helvetica').text(`$${invoice.totalAmount.toFixed(2)}`, totalsX + 110, bottomY + 30, { width: 100, align: 'right' });
 
-  // Balance Due Box
-  doc.rect(totalsX, bottomY + 45, 210, 2).fill('#e2e8f0'); 
-  doc.rect(totalsX, bottomY + 50, 210, 25).fill('#f8fafc');
-  doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text("BALANCE DUE", totalsX + 10, bottomY + 57, { width: 100 });
-  doc.text(`$${invoice.totalAmount.toFixed(2)}`, totalsX + 100, bottomY + 57, { width: 100, align: 'right' });
+  // 🔥 NEW: Show Amount Paid
+  doc.font('Helvetica-Bold').fillColor('#059669').text("AMOUNT PAID", totalsX, bottomY + 45, { width: 100 });
+  doc.font('Helvetica').text(`-$${(invoice.amountPaid || 0).toFixed(2)}`, totalsX + 110, bottomY + 45, { width: 100, align: 'right' });
+
+  // 🔥 UPDATED: Balance Due Box calculating remaining total
+  const remainingBalance = invoice.totalAmount - (invoice.amountPaid || 0);
+  doc.rect(totalsX, bottomY + 60, 210, 2).fill('#e2e8f0'); 
+  doc.rect(totalsX, bottomY + 65, 210, 25).fill('#f8fafc');
+  doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text("BALANCE DUE", totalsX + 10, bottomY + 72, { width: 100 });
+  doc.text(`$${Math.max(0, remainingBalance).toFixed(2)}`, totalsX + 100, bottomY + 72, { width: 100, align: 'right' });
 
   doc.fontSize(9).font('Helvetica-Oblique').fillColor('#94a3b8').text('Thank you for your business.', 50, 720, { align: 'center' });
 }

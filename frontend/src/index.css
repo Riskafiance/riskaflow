@@ -5,7 +5,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
+  background-color: 
+#f8fafc;
 }
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -46,7 +47,7 @@ code {
 }
 /* --- MOBILE ZOOM FIX --- */
 /* Zoom out the phone view specifically */
-@media (max-width: 1000px) {
+@media (max-width: 950px) {
   html {
     zoom: 1.00; /* Tweak this number (0.7, 0.85, etc.) for the perfect phone size */
   }

@@ -42,8 +42,18 @@ function App() {
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
-  // 🔥 NEW: State for collapsible sidebar
+  // 🔥 Sidebar collapse (desktop) + mobile open state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // 🔥 Mobile detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // State for tracking if you are in "Expert Mode"
   const [impersonatedUser, setImpersonatedUser] = useState(null);
@@ -104,6 +114,7 @@ function App() {
     setActiveTab('clientProfile');
     setGlobalSearchTerm(''); 
     setShowSearchResults(false);
+    if (isMobile) setIsMobileSidebarOpen(false);
   };
 
   const handleEditInvoice = (inv) => {
@@ -111,16 +122,19 @@ function App() {
     setActiveTab('createInvoice');
     setGlobalSearchTerm(''); 
     setShowSearchResults(false);
+    if (isMobile) setIsMobileSidebarOpen(false);
   };
 
   const handleEditQuote = (quote) => {
     setQuoteToEdit(quote);
     setActiveTab('createQuote');
+    if (isMobile) setIsMobileSidebarOpen(false);
   };
 
   const handleManagePayment = (inv) => {
     setInvoiceToManage(inv);
     setActiveTab('managePayment');
+    if (isMobile) setIsMobileSidebarOpen(false);
   };
 
   const handleDeleteInvoice = (id) => {
@@ -137,6 +151,14 @@ function App() {
         .then(() => fetchData())
         .catch(err => alert("Error deleting quote."));
     }
+  };
+
+  // Helper: navigate and close mobile sidebar
+  const handleNavClick = (tabId) => {
+    setActiveTab(tabId);
+    setInvoiceToEdit(null);
+    setQuoteToEdit(null);
+    if (isMobile) setIsMobileSidebarOpen(false);
   };
 
   // --- SEARCH LOGIC ---
@@ -208,6 +230,94 @@ function App() {
 
   const displayGreetingName = impersonatedUser ? impersonatedUser.businessName : (currentUser?.displayName?.split(' ')[0] || '');
 
+  // 🔥 Sidebar content — shared between desktop & mobile drawer
+  const SidebarContent = () => (
+    <>
+      <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', justifyContent: (isSidebarCollapsed && !isMobile) ? 'center' : 'space-between' }}>
+        <div 
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: (isSidebarCollapsed && !isMobile) ? 'pointer' : 'default', overflow: 'hidden' }}
+          onClick={() => (isSidebarCollapsed && !isMobile) && setIsSidebarCollapsed(false)}
+          title={(isSidebarCollapsed && !isMobile) ? "Expand Sidebar" : ""}
+        >
+          <img 
+            src="/clearpay.png" 
+            alt="ClearPay Logo" 
+            style={{ 
+              height: '80px', 
+              width: (isSidebarCollapsed && !isMobile) ? '100px' : 'auto', 
+              maxWidth: '300px', 
+              objectFit: 'contain', 
+              objectPosition: 'left', 
+              transition: 'all 0.3s ease',
+              flexShrink: 0 
+            }} 
+          />
+        </div>
+        
+        {/* Desktop collapse button */}
+        {!isSidebarCollapsed && !isMobile && (
+          <button 
+            onClick={() => setIsSidebarCollapsed(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.2s', flexShrink: 0 }}
+            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
+            title="Collapse Sidebar"
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+        )}
+
+        {/* Mobile close button */}
+        {isMobile && (
+          <button
+            onClick={() => setIsMobileSidebarOpen(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '6px' }}
+          >
+            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        )}
+      </div>
+      
+      {activeTab !== 'createInvoice' && activeTab !== 'createQuote' && (
+        <div style={{ padding: (isSidebarCollapsed && !isMobile) ? '0' : '0 8px', marginBottom: '35px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button onClick={() => { setInvoiceToEdit(null); handleNavClick('createInvoice'); }} style={{ width: '100%', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: (isSidebarCollapsed && !isMobile) ? '14px 0' : '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s', letterSpacing: '0.02em' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }} title={(isSidebarCollapsed && !isMobile) ? "New Invoice" : ""}>
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            {(!(isSidebarCollapsed && !isMobile)) && "New Invoice"}
+          </button>
+        </div>
+      )}
+      
+      <nav style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {navItems.map(item => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              title={(isSidebarCollapsed && !isMobile) ? item.label : ""}
+              onClick={() => handleNavClick(item.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '14px', width: '100%', textAlign: 'left',
+                justifyContent: (isSidebarCollapsed && !isMobile) ? 'center' : 'flex-start',
+                backgroundColor: isActive ? (item.id === 'admin' ? '#eff6ff' : '#ecfdf5') : 'transparent',
+                border: 'none', fontSize: '15px', fontWeight: isActive ? '700' : '600',
+                color: isActive ? (item.id === 'admin' ? '#1d4ed8' : '#047857') : '#64748b', cursor: 'pointer', padding: (isSidebarCollapsed && !isMobile) ? '12px 0' : '12px 16px',
+                borderRadius: '10px', transition: 'all 0.2s ease',
+                boxShadow: isActive && !(isSidebarCollapsed && !isMobile) ? `inset 4px 0 0 ${item.id === 'admin' ? '#2563eb' : '#10b981'}` : 'none'
+              }}
+              onMouseOver={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; } }}
+              onMouseOut={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; } }}
+            >
+              <div style={{ flexShrink: 0, display: 'flex' }}>
+                {item.icon}
+              </div>
+              {(!(isSidebarCollapsed && !isMobile)) && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
+            </button>
+          );
+        })}
+      </nav>
+    </>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#f8fafc' }}>
       
@@ -224,8 +334,24 @@ function App() {
       )}
 
       {/* 🟢 TOP BAR */}
-      <div style={{ backgroundColor: '#023c34', padding: '12px 24px', display: 'flex', alignItems: 'center', zIndex: 50, position: 'relative', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '250px' }}>
+      <div style={{ backgroundColor: '#023c34', padding: isMobile ? '10px 14px' : '12px 24px', display: 'flex', alignItems: 'center', zIndex: 50, position: 'relative', flexShrink: 0, gap: isMobile ? '10px' : '0' }}>
+
+        {/* 🔥 Hamburger button — mobile only */}
+        {isMobile && (
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', flexShrink: 0 }}
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        )}
+
+        {/* Logo + brand name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: isMobile ? 'auto' : '250px', flexShrink: 0 }}>
           <img 
             src="/logo.png" 
             alt="ClearPay Logo" 
@@ -237,80 +363,86 @@ function App() {
           </h1>
         </div>
 
-        <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '100%', maxWidth: '800px', position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#a7f3d0', fontSize: '16px' }}>🔍</span>
-            <input 
-              type="text" 
-              placeholder="Navigate. Find transactions, contacts, reports, and more." 
-              value={globalSearchTerm}
-              onChange={(e) => { setGlobalSearchTerm(e.target.value); setShowSearchResults(true); }}
-              onFocus={() => setShowSearchResults(true)}
-              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)} 
-              style={{ width: '100%', padding: '10px 16px 10px 42px', borderRadius: '9999px', border: '1px solid #065f46', backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
-            />
-            {showSearchResults && globalSearchTerm.length > 0 && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', maxHeight: '400px', overflowY: 'auto', zIndex: 100, border: '1px solid #e5e7eb' }}>
-                {!hasSearchResults && <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>No results found for "{globalSearchTerm}"</div>}
-                
-                {searchResults.customers.length > 0 && (
-                  <div style={{ padding: '10px 0' }}>
-                    <div style={{ padding: '4px 16px', fontSize: '11px', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Clients</div>
-                    {searchResults.customers.map(c => (
-                      <div key={`cust-${c.id}`} onClick={() => handleViewProfile(c.id)} style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', flexShrink: 0 }}>
-                          {c.firstName?.charAt(0)}{c.lastName?.charAt(0)}
+        {/* Search bar — hidden on mobile */}
+        {!isMobile && (
+          <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '800px', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#a7f3d0', fontSize: '16px' }}>🔍</span>
+              <input 
+                type="text" 
+                placeholder="Navigate. Find transactions, contacts, reports, and more." 
+                value={globalSearchTerm}
+                onChange={(e) => { setGlobalSearchTerm(e.target.value); setShowSearchResults(true); }}
+                onFocus={() => setShowSearchResults(true)}
+                onBlur={() => setTimeout(() => setShowSearchResults(false), 200)} 
+                style={{ width: '100%', padding: '10px 16px 10px 42px', borderRadius: '9999px', border: '1px solid #065f46', backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
+              />
+              {showSearchResults && globalSearchTerm.length > 0 && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', maxHeight: '400px', overflowY: 'auto', zIndex: 100, border: '1px solid #e5e7eb' }}>
+                  {!hasSearchResults && <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>No results found for "{globalSearchTerm}"</div>}
+                  
+                  {searchResults.customers.length > 0 && (
+                    <div style={{ padding: '10px 0' }}>
+                      <div style={{ padding: '4px 16px', fontSize: '11px', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Clients</div>
+                      {searchResults.customers.map(c => (
+                        <div key={`cust-${c.id}`} onClick={() => handleViewProfile(c.id)} style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', flexShrink: 0 }}>
+                            {c.firstName?.charAt(0)}{c.lastName?.charAt(0)}
+                          </div>
+                          <div>
+                            <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{c.firstName} {c.lastName}</div>
+                            {c.companyName && <div style={{ color: '#6b7280', fontSize: '12px' }}>{c.companyName}</div>}
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{c.firstName} {c.lastName}</div>
-                          {c.companyName && <div style={{ color: '#6b7280', fontSize: '12px' }}>{c.companyName}</div>}
+                      ))}
+                    </div>
+                  )}
+                  
+                  {searchResults.customers.length > 0 && searchResults.invoices.length > 0 && <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '4px 0' }}></div>}
+                  
+                  {searchResults.invoices.length > 0 && (
+                    <div style={{ padding: '10px 0' }}>
+                      <div style={{ padding: '4px 16px', fontSize: '11px', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Invoices</div>
+                      {searchResults.invoices.map(inv => (
+                        <div key={`inv-${inv.id}`} onClick={() => handleEditInvoice(inv)} style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                          <div>
+                            <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{inv.invoiceNumber}</div>
+                            <div style={{ color: '#6b7280', fontSize: '12px' }}>{inv.customer ? `${inv.customer.firstName} ${inv.customer.lastName}` : 'Unknown'}</div>
+                          </div>
+                          <div style={{ color: '#059669', fontSize: '14px', fontWeight: 'bold' }}>${inv.totalAmount.toFixed(2)}</div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {searchResults.customers.length > 0 && searchResults.invoices.length > 0 && <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '4px 0' }}></div>}
-                
-                {searchResults.invoices.length > 0 && (
-                  <div style={{ padding: '10px 0' }}>
-                    <div style={{ padding: '4px 16px', fontSize: '11px', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Invoices</div>
-                    {searchResults.invoices.map(inv => (
-                      <div key={`inv-${inv.id}`} onClick={() => handleEditInvoice(inv)} style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <div>
-                          <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{inv.invoiceNumber}</div>
-                          <div style={{ color: '#6b7280', fontSize: '12px' }}>{inv.customer ? `${inv.customer.firstName} ${inv.customer.lastName}` : 'Unknown'}</div>
-                        </div>
-                        <div style={{ color: '#059669', fontSize: '14px', fontWeight: 'bold' }}>${inv.totalAmount.toFixed(2)}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         
         {/* 🔥 USER PROFILE IN TOP RIGHT WITH DROPDOWN */}
-        <div style={{ width: '250px', display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)} 
             style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '6px 12px', borderRadius: '10px', transition: 'background-color 0.2s', backgroundColor: showProfileMenu ? 'rgba(255, 255, 255, 0.1)' : 'transparent' }}
             onMouseOver={(e) => { if(!showProfileMenu) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}}
             onMouseOut={(e) => { if(!showProfileMenu) e.currentTarget.style.backgroundColor = 'transparent'}}
           >
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ color: 'white', fontSize: '14px', fontWeight: '700', lineHeight: '1.2' }}>
-                {currentUser?.displayName || 'Business User'}
+            {/* Hide name text on mobile */}
+            {!isMobile && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: 'white', fontSize: '14px', fontWeight: '700', lineHeight: '1.2' }}>
+                  {currentUser?.displayName || 'Business User'}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'white', color: '#023c34', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '18px', border: '2px solid #065f46', flexShrink: 0 }}>
               {currentUser?.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
             </div>
           </div>
 
           {showProfileMenu && (
-            <div style={{ position: 'absolute', top: '56px', right: '10px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', width: '280px', padding: '24px', zIndex: 100, border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeIn 0.2s ease-out' }}>
+            <div style={{ position: 'absolute', top: '56px', right: '10px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', width: isMobile ? 'calc(100vw - 28px)' : '280px', padding: '24px', zIndex: 100, border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeIn 0.2s ease-out' }}>
               
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#0284c7', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', marginBottom: '12px' }}>
                 {currentUser?.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
@@ -358,86 +490,41 @@ function App() {
       </div>
 
       {/* BOTTOM LAYOUT */}
-      <div style={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
+
+        {/* 🔥 MOBILE: Dark overlay behind sidebar drawer */}
+        {isMobile && isMobileSidebarOpen && (
+          <div
+            onClick={() => setIsMobileSidebarOpen(false)}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 40 }}
+          />
+        )}
         
         {/* ⬅️ SIDEBAR NAVIGATION */}
-        <div style={{ width: isSidebarCollapsed ? '80px' : '270px', transition: 'width 0.3s ease', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', padding: isSidebarCollapsed ? '28px 10px' : '28px 20px', flexShrink: 0, zIndex: 10, overflowY: 'auto', overflowX: 'hidden' }}>
-          
-          <div style={{ padding: '0 8px', marginBottom: '35px', display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between' }}>
-            <div 
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: isSidebarCollapsed ? 'pointer' : 'default', overflow: 'hidden' }}
-              onClick={() => isSidebarCollapsed && setIsSidebarCollapsed(false)}
-              title={isSidebarCollapsed ? "Expand Sidebar" : ""}
-            >
-              <img 
-                src="/clearpay.png" 
-                alt="ClearPay Logo" 
-                style={{ 
-                  height: '80px', 
-                  width: isSidebarCollapsed ? '100px' : 'auto', 
-                  maxWidth: '300px', 
-                  objectFit: 'contain', 
-                  objectPosition: 'left', 
-                  transition: 'all 0.3s ease',
-                  flexShrink: 0 
-                }} 
-              />
-            </div>
-            
-            {!isSidebarCollapsed && (
-              <button 
-                onClick={() => setIsSidebarCollapsed(true)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.2s', flexShrink: 0 }}
-                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
-                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
-                title="Collapse Sidebar"
-              >
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
-            )}
+        {isMobile ? (
+          // 🔥 Mobile: slide-in drawer
+          <div style={{
+            position: 'fixed', top: 0, left: 0, height: '100vh',
+            width: '270px',
+            backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0',
+            display: 'flex', flexDirection: 'column',
+            padding: '28px 20px',
+            zIndex: 50,
+            overflowY: 'auto', overflowX: 'hidden',
+            transform: isMobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s ease',
+          }}>
+            <SidebarContent />
           </div>
-          
-          {activeTab !== 'createInvoice' && activeTab !== 'createQuote' && (
-            <div style={{ padding: isSidebarCollapsed ? '0' : '0 8px', marginBottom: '35px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button onClick={() => { setInvoiceToEdit(null); setActiveTab('createInvoice'); }} style={{ width: '100%', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: isSidebarCollapsed ? '14px 0' : '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s', letterSpacing: '0.02em' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }} title={isSidebarCollapsed ? "New Invoice" : ""}>
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                {!isSidebarCollapsed && "New Invoice"}
-              </button>
-            </div>
-          )}
-          
-          <nav style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {navItems.map(item => {
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  title={isSidebarCollapsed ? item.label : ""}
-                  onClick={() => { setActiveTab(item.id); setInvoiceToEdit(null); setQuoteToEdit(null); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '14px', width: '100%', textAlign: 'left',
-                    justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-                    backgroundColor: isActive ? (item.id === 'admin' ? '#eff6ff' : '#ecfdf5') : 'transparent',
-                    border: 'none', fontSize: '15px', fontWeight: isActive ? '700' : '600',
-                    color: isActive ? (item.id === 'admin' ? '#1d4ed8' : '#047857') : '#64748b', cursor: 'pointer', padding: isSidebarCollapsed ? '12px 0' : '12px 16px',
-                    borderRadius: '10px', transition: 'all 0.2s ease',
-                    boxShadow: isActive && !isSidebarCollapsed ? `inset 4px 0 0 ${item.id === 'admin' ? '#2563eb' : '#10b981'}` : 'none'
-                  }}
-                  onMouseOver={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; } }}
-                  onMouseOut={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; } }}
-                >
-                  <div style={{ flexShrink: 0, display: 'flex' }}>
-                    {item.icon}
-                  </div>
-                  {!isSidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+        ) : (
+          // Desktop: original collapsible sidebar
+          <div style={{ width: isSidebarCollapsed ? '80px' : '270px', transition: 'width 0.3s ease', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', padding: isSidebarCollapsed ? '28px 10px' : '28px 20px', flexShrink: 0, zIndex: 10, overflowY: 'auto', overflowX: 'hidden' }}>
+            <SidebarContent />
+          </div>
+        )}
 
         {/* ➡️ MAIN CONTENT AREA */}
-        <div style={{ flex: 1, padding: '40px 50px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px 14px' : '40px 50px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           
           <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', flexGrow: 1 }}>
 
@@ -513,71 +600,73 @@ function App() {
               <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                 
                 {/* Dashboard Header */}
-                <div style={{ marginBottom: '35px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div style={{ marginBottom: '35px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '0' }}>
                   <div>
-                    <h2 style={{ margin: 0, color: '#0f172a', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{greeting}, {displayGreetingName}</h2>
-                    <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '16px', fontWeight: '400' }}>Here is what's happening with your business today.</p>
+                    <h2 style={{ margin: 0, color: '#0f172a', fontSize: isMobile ? '22px' : '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{greeting}, {displayGreetingName}</h2>
+                    <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: isMobile ? '14px' : '16px', fontWeight: '400' }}>Here is what's happening with your business today.</p>
                   </div>
-                  <div style={{ color: '#475569', fontSize: '14px', fontWeight: '600', backgroundColor: '#ffffff', padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                    {today.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
-                  </div>
+                  {!isMobile && (
+                    <div style={{ color: '#475569', fontSize: '14px', fontWeight: '600', backgroundColor: '#ffffff', padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                      {today.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Top Metrics Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '35px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? '12px' : '24px', marginBottom: '35px' }}>
                   
-                  <CardWrapper style={{ padding: '26px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>💵</div>
-                      <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</h3>
+                  <CardWrapper style={{ padding: isMobile ? '16px' : '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '16px' : '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)', flexShrink: 0 }}>💵</div>
+                      <h3 style={{ margin: 0, color: '#64748b', fontSize: isMobile ? '10px' : '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</h3>
                     </div>
-                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${totalRevenue.toFixed(2)}</div>
+                    <div style={{ fontSize: isMobile ? '20px' : '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${totalRevenue.toFixed(2)}</div>
                     <div style={{ fontSize: '13px', color: '#059669', marginTop: '10px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ fontSize: '16px' }}>↑</span> All paid invoices
                     </div>
                   </CardWrapper>
 
-                  <CardWrapper style={{ padding: '26px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⏳</div>
-                      <h3 style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</h3>
+                  <CardWrapper style={{ padding: isMobile ? '16px' : '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '16px' : '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)', flexShrink: 0 }}>⏳</div>
+                      <h3 style={{ margin: 0, color: '#64748b', fontSize: isMobile ? '10px' : '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Outstanding</h3>
                     </div>
-                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${outstandingBalance.toFixed(2)}</div>
+                    <div style={{ fontSize: isMobile ? '20px' : '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>${outstandingBalance.toFixed(2)}</div>
                     <div style={{ fontSize: '13px', color: '#2563eb', marginTop: '10px', fontWeight: '600' }}>Pending payments</div>
                   </CardWrapper>
 
-                  <CardWrapper style={{ padding: '26px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>⚠️</div>
-                      <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Overdue</h3>
+                  <CardWrapper style={{ padding: isMobile ? '16px' : '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '16px' : '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)', flexShrink: 0 }}>⚠️</div>
+                      <h3 style={{ margin: '0', color: '#64748b', fontSize: isMobile ? '10px' : '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Overdue</h3>
                     </div>
-                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{overdueCount}</div>
+                    <div style={{ fontSize: isMobile ? '20px' : '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{overdueCount}</div>
                     <div style={{ fontSize: '13px', color: '#dc2626', marginTop: '10px', fontWeight: '600' }}>Invoices require action</div>
                   </CardWrapper>
 
-                  <CardWrapper style={{ padding: '26px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)' }}>👥</div>
-                      <h3 style={{ margin: '0', color: '#64748b', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Clients</h3>
+                  <CardWrapper style={{ padding: isMobile ? '16px' : '26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '16px' : '22px', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)', flexShrink: 0 }}>👥</div>
+                      <h3 style={{ margin: '0', color: '#64748b', fontSize: isMobile ? '10px' : '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Clients</h3>
                     </div>
-                    <div style={{ fontSize: '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{totalClients}</div>
+                    <div style={{ fontSize: isMobile ? '20px' : '34px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' }}>{totalClients}</div>
                     <div style={{ fontSize: '13px', color: '#7e22ce', marginTop: '10px', fontWeight: '600' }}>Across directory</div>
                   </CardWrapper>
                 </div>
 
-                {/* Bottom Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }}>
+                {/* Bottom Row — stacks on mobile */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2.5fr 1fr', gap: '25px' }}>
                   
                   <CardWrapper style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 28px', borderBottom: '1px solid #f1f5f9' }}>
                       <h3 style={{ color: '#0f172a', margin: 0, fontSize: '18px', fontWeight: '800' }}>Recent Invoices</h3>
                       <button onClick={() => setActiveTab('invoices')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: '700', fontSize: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>View All &rarr;</button>
                     </div>
-                    <div style={{ flexGrow: 1, overflowX: 'auto', padding: '0 10px 10px 10px' }}>
+                    <div style={{ flexGrow: 1, overflowX: 'auto', padding: '0 10px 10px 10px', WebkitOverflowScrolling: 'touch' }}>
                       {invoices.length === 0 ? (
                         <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' }}>No recent invoices. Click "+ New Invoice" to get started.</div>
                       ) : (
-                        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: isMobile ? '480px' : 'unset' }}>
                           <thead>
                             <tr style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                               <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Invoice #</th>
@@ -690,12 +779,11 @@ function App() {
             )}
           </div>
 
-          {/* 🔥 MOVED: Footer is now outside the scrollable content area to stick to the bottom */}
-        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '14px', fontWeight: '500', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '14px', fontWeight: '500', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
             © 2026 Riska's Finance. All Rights Reserved.<br />
             <a href="https://www.riskasfinance.com" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>www.riskasfinance.com</a>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );

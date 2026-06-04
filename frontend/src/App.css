@@ -3,16 +3,13 @@
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
@@ -28,37 +25,378 @@
   animation: fadeIn 0.4s ease-out;
 }
 
-/* --- MOBILE RESPONSIVENESS --- */
+/* ============================================
+   GLOBAL MOBILE BASE
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+input, button, select, textarea {
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
+}
+
+/* ============================================
+   TABLET — max-width: 1024px
+   ============================================ */
 @media (max-width: 1024px) {
-  /* Ensure the sidebar overlay doesn't block clicks when hidden */
+  /* Sidebar overlay */
   .mobile-sidebar-hidden {
     display: none !important;
   }
 
-  /* Make metrics stack on top of each other on phones */
+  /* Metrics grid: single column */
   .metrics-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
 
-  /* Adjust the main dashboard padding for smaller screens */
+  /* Dashboard padding */
   .dashboard-wrapper {
     padding: 16px !important;
   }
+
+  /* Reduce font sizes slightly for tablets */
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.35rem; }
+  h3 { font-size: 1.15rem; }
+
+  /* Side-by-side cards collapse to stacked */
+  .card-row,
+  .flex-row,
+  .split-layout {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Full-width buttons on tablet */
+  .action-bar,
+  .button-group {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }
 
-/* Utility to hide elements specifically on mobile */
-@media (max-width: 640px) {
-  .hide-on-mobile {
-    display: none !important;
+/* ============================================
+   MOBILE — max-width: 768px
+   ============================================ */
+@media (max-width: 768px) {
+  /* ---- Layout ---- */
+  .dashboard-wrapper,
+  .page-wrapper,
+  .content-wrapper {
+    padding: 12px !important;
   }
-  
-  /* Ensure tables don't squish; they should scroll horizontally */
+
+  .main-content-container {
+    padding: 12px;
+  }
+
+  /* ---- Typography ---- */
+  h1 { font-size: 1.4rem; line-height: 1.3; }
+  h2 { font-size: 1.2rem; line-height: 1.3; }
+  h3 { font-size: 1.05rem; }
+  p, li, td, th { font-size: 0.9rem; }
+
+  /* ---- Cards & Panels ---- */
+  .card,
+  .panel,
+  .modal-card,
+  .form-card {
+    padding: 14px !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+  }
+
+  /* ---- Forms ---- */
+  .form-row,
+  .form-grid,
+  .input-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .form-group,
+  .input-group,
+  .form-field {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="date"],
+  input[type="tel"],
+  select,
+  textarea {
+    width: 100% !important;
+    font-size: 16px !important; /* Prevent iOS zoom */
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ---- Buttons ---- */
+  .btn,
+  button.primary,
+  button.secondary,
+  .action-btn {
+    width: 100%;
+    padding: 12px 16px !important;
+    font-size: 0.95rem !important;
+    border-radius: 8px !important;
+    min-height: 44px; /* Touch target */
+  }
+
+  .button-group,
+  .action-bar,
+  .btn-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  /* ---- Tables ---- */
   .table-container {
     display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  table {
+    min-width: 500px; /* Forces scroll before squishing */
+    font-size: 0.82rem;
+  }
+
+  th, td {
+    padding: 8px 10px !important;
+    white-space: nowrap;
+  }
+
+  /* ---- Modals ---- */
+  .modal,
+  .modal-overlay {
+    align-items: flex-end !important; /* Slide up from bottom on mobile */
+  }
+
+  .modal-content,
+  .modal-box,
+  .dialog-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 20px 16px !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* ---- Navigation / Tabs ---- */
+  .tab-bar,
+  .nav-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    padding-bottom: 4px;
+  }
+
+  .tab-item,
+  .nav-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* ---- Header / Top Bar ---- */
+  .top-bar,
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+
+  .page-title {
+    font-size: 1.3rem !important;
+  }
+
+  /* ---- Sidebar ---- */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    width: 260px !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+  }
+
+  /* ---- Metrics / Stats Cards ---- */
+  .metrics-grid,
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .metric-card,
+  .stat-card {
+    padding: 12px !important;
+  }
+
+  .metric-value,
+  .stat-value {
+    font-size: 1.4rem !important;
+  }
+
+  /* ---- Invoice / Quote specific ---- */
+  .invoice-header,
+  .quote-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .line-items-table {
+    font-size: 0.8rem;
+  }
+
+  /* ---- Dropdowns / Select menus ---- */
+  .dropdown-menu,
+  .select-menu {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* ---- Search bars ---- */
+  .search-bar,
+  .search-input-wrapper {
+    width: 100% !important;
+  }
+
+  /* ---- Filter/sort rows ---- */
+  .filter-row,
+  .sort-row,
+  .toolbar {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+}
+
+/* ============================================
+   SMALL PHONE — max-width: 640px
+   ============================================ */
+@media (max-width: 640px) {
+  /* Hide non-essential columns/elements */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  /* Table scroll */
+  .table-container {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Stack metrics to single column on very small screens */
+  .metrics-grid,
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tighter page padding */
+  .dashboard-wrapper,
+  .page-wrapper,
+  .content-wrapper,
+  .main-content-container {
+    padding: 10px !important;
+  }
+
+  /* Smaller headings */
+  h1 { font-size: 1.25rem; }
+  h2 { font-size: 1.1rem; }
+
+  /* Charts / graph containers */
+  .chart-container,
+  .graph-wrapper {
+    height: 220px !important;
+    width: 100% !important;
+  }
+
+  /* Logo / brand sizing */
+  .logo img,
+  .brand-logo {
+    max-height: 36px;
+  }
+
+  /* Full-width action buttons */
+  .btn, button {
+    min-height: 44px; /* Accessible touch target */
+  }
+
+  /* Tighten table text further */
+  table {
+    font-size: 0.78rem;
+  }
+
+  th, td {
+    padding: 6px 8px !important;
+  }
+}
+
+/* ============================================
+   VERY SMALL PHONE — max-width: 390px
+   ============================================ */
+@media (max-width: 390px) {
+  h1 { font-size: 1.15rem; }
+  h2 { font-size: 1rem; }
+
+  .card,
+  .panel {
+    padding: 10px !important;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important;
+    padding: 9px 10px !important;
+  }
+
+  .metric-value,
+  .stat-value {
+    font-size: 1.2rem !important;
   }
 }

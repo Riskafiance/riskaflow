@@ -48,7 +48,7 @@ code {
 /* Uses zoom to shrink the UI so it fits perfectly on mobile screens */
 @media (max-width: 950px) {
   html, body {
-    zoom: 0.85; /* Shrinks the app by 50% on phones */
+    zoom: 1.0; /* Shrinks the app by 50% on phones */
     -moz-transform: scale(0.50); /* Fallback for Firefox */
     -moz-transform-origin: top left;
   }

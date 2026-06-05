@@ -9,7 +9,6 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      // Firebase will automatically update the App.js state!
     } catch (error) {
       console.error("Login Failed:", error);
       alert("Failed to log in with Google. Please try again.");
@@ -17,38 +16,81 @@ const Login = () => {
     }
   };
 
+  const isMobile = window.innerWidth <= 768;
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f8fafc', fontFamily: '"Inter", sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: isMobile ? 'column' : 'row', backgroundColor: '#f8fafc', fontFamily: '"Inter", sans-serif' }}>
       
       {/* Left Side - Branding */}
-      <div style={{ flex: 1, background: 'linear-gradient(135deg, #023c34 0%, #065f46 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', color: 'white' }}>
-        <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-          <div style={{ width: '60px', height: '60px', backgroundColor: 'white', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#047857', fontSize: '32px', fontWeight: '900', marginBottom: '30px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+      <div style={{
+        flex: isMobile ? 'none' : 1,
+        background: 'linear-gradient(135deg, #023c34 0%, #065f46 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        padding: isMobile ? '40px 28px 32px 28px' : '60px',
+        color: 'white',
+      }}>
+        <div style={{ maxWidth: isMobile ? '100%' : '500px', margin: '0 auto' }}>
+          <div style={{ width: '52px', height: '52px', backgroundColor: 'white', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#047857', fontSize: '28px', fontWeight: '900', marginBottom: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             R
           </div>
-          <h1 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 20px 0', letterSpacing: '-0.03em', lineHeight: '1.1' }}>
+          <h1 style={{ fontSize: isMobile ? '28px' : '48px', fontWeight: '900', margin: '0 0 14px 0', letterSpacing: '-0.03em', lineHeight: '1.15' }}>
             Run your business with confidence.
           </h1>
-          <p style={{ fontSize: '18px', color: '#a7f3d0', lineHeight: '1.6', fontWeight: '400' }}>
+          <p style={{ fontSize: isMobile ? '15px' : '18px', color: '#a7f3d0', lineHeight: '1.6', fontWeight: '400', margin: 0 }}>
             RiskaFlow is the all-in-one financial operating system. Manage clients, send professional invoices, and get paid faster.
           </p>
         </div>
       </div>
 
       {/* Right Side - Login Box */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
-        <div style={{ width: '100%', maxWidth: '440px', backgroundColor: 'white', padding: '50px 40px', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', border: '1px solid #f1f5f9' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-0.02em' }}>
+      <div style={{
+        flex: isMobile ? 'none' : 1,
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'center',
+        padding: isMobile ? '32px 20px' : '40px',
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '440px',
+          backgroundColor: 'white',
+          padding: isMobile ? '32px 24px' : '50px 40px',
+          borderRadius: '24px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid #f1f5f9',
+          boxSizing: 'border-box',
+        }}>
+          <h2 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
             Welcome back
           </h2>
-          <p style={{ color: '#64748b', fontSize: '15px', margin: '0 0 40px 0' }}>
+          <p style={{ color: '#64748b', fontSize: '15px', margin: '0 0 32px 0' }}>
             Log in or create an account to access your workspace.
           </p>
 
           <button 
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            style={{ width: '100%', backgroundColor: 'white', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px 20px', fontSize: '16px', fontWeight: '700', color: '#334155', cursor: isLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
+            style={{
+              width: '100%',
+              backgroundColor: 'white',
+              border: '2px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '14px 20px',
+              fontSize: '16px',
+              fontWeight: '700',
+              color: '#334155',
+              cursor: isLoading ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+              boxSizing: 'border-box',
+              minHeight: '52px',
+            }}
             onMouseOver={(e) => { if(!isLoading) { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; } }}
             onMouseOut={(e) => { if(!isLoading) { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; } }}
           >
@@ -65,7 +107,7 @@ const Login = () => {
             )}
           </button>
 
-          <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '13px', marginTop: '30px' }}>
+          <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '13px', marginTop: '28px', marginBottom: 0 }}>
             By continuing, you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>

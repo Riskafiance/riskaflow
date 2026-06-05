@@ -666,14 +666,14 @@ function App() {
                       {invoices.length === 0 ? (
                         <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' }}>No recent invoices. Click "+ New Invoice" to get started.</div>
                       ) : (
-                        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: isMobile ? '480px' : 'unset' }}>
+                        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: isMobile ? '360px' : 'unset', fontSize: isMobile ? '12px' : '14px' }}>
                           <thead>
-                            <tr style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Invoice #</th>
-                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Customer</th>
-                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Amount</th>
-                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Status</th>
-                              <th style={{ padding: '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9', textAlign: 'right' }}>Document</th>
+                            <tr style={{ color: '#64748b', fontSize: isMobile ? '10px' : '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              <th style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Invoice #</th>
+                              <th style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Customer</th>
+                              <th style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Amount</th>
+                              <th style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9' }}>Status</th>
+                              <th style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '700', borderBottom: '1px solid #f1f5f9', textAlign: 'right' }}>Doc</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -681,16 +681,16 @@ function App() {
                               const isOverdue = new Date(inv.dueDate) < today && inv.status !== 'paid';
                               return (
                                 <tr key={inv.id} style={{ transition: 'background-color 0.2s', borderBottom: '1px solid #f8fafc' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                  <td style={{ padding: '16px 20px', fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>{inv.invoiceNumber}</td>
-                                  <td style={{ padding: '16px 20px' }}>
+                                  <td style={{ padding: isMobile ? '10px 8px' : '16px 20px', fontWeight: '800', color: '#0f172a', fontSize: isMobile ? '12px' : '14px', whiteSpace: 'nowrap' }}>{inv.invoiceNumber}</td>
+                                  <td style={{ padding: isMobile ? '10px 8px' : '16px 20px' }}>
                                     {inv.customer ? (
-                                      <button onClick={() => handleViewProfile(inv.customer.id)} style={{ background: 'none', border: 'none', color: '#475569', fontWeight: '600', cursor: 'pointer', padding: 0, fontSize: '14px' }} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#475569'}>
+                                      <button onClick={() => handleViewProfile(inv.customer.id)} style={{ background: 'none', border: 'none', color: '#475569', fontWeight: '600', cursor: 'pointer', padding: 0, fontSize: isMobile ? '12px' : '14px' }} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#475569'}>
                                         {inv.customer.firstName} {inv.customer.lastName}
                                       </button>
                                     ) : <span style={{ color: '#cbd5e1' }}>Unknown</span>}
                                   </td>
-                                  <td style={{ padding: '16px 20px', color: '#0f172a', fontWeight: '700', fontSize: '14px' }}>${inv.totalAmount.toFixed(2)}</td>
-                                  <td style={{ padding: '16px 20px' }}>
+                                  <td style={{ padding: isMobile ? '10px 8px' : '16px 20px', color: '#0f172a', fontWeight: '700', fontSize: isMobile ? '12px' : '14px', whiteSpace: 'nowrap' }}>${inv.totalAmount.toFixed(2)}</td>
+                                  <td style={{ padding: isMobile ? '10px 8px' : '16px 20px' }}>
                                     {inv.status === 'paid' ? (
                                       <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
@@ -709,8 +709,8 @@ function App() {
                                       </span>
                                     )}
                                   </td>
-                                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '12px', backgroundColor: '#eff6ff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>View PDF</a>
+                                  <td style={{ padding: isMobile ? '10px 8px' : '16px 20px', textAlign: 'right' }}>
+                                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '700', fontSize: '11px', backgroundColor: '#eff6ff', padding: isMobile ? '5px 8px' : '6px 14px', borderRadius: '6px', border: '1px solid #bfdbfe', transition: 'all 0.2s', whiteSpace: 'nowrap' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#dbeafe'; e.target.style.borderColor = '#93c5fd'; }} onMouseOut={(e) => { e.target.style.backgroundColor = '#eff6ff'; e.target.style.borderColor = '#bfdbfe'; }}>{isMobile ? 'PDF' : 'View PDF'}</a>
                                   </td>
                                 </tr>
                               );

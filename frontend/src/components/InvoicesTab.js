@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, refreshData, onManagePayment }) => {
@@ -7,6 +7,13 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   
   const [emailingInvoiceId, setEmailingInvoiceId] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const today = new Date();
 
@@ -113,31 +120,90 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
   const overduePercent = unpaidTotal > 0 ? (overdueTotal / unpaidTotal) * 100 : 0;
 
   // --- STYLING HELPERS ---
-  const summaryBoxStyle = { flex: 1, backgroundColor: 'white', padding: '24px 30px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: '15px', transition: 'transform 0.2s', cursor: 'default' };
+  const summaryBoxStyle = { flex: 1, backgroundColor: 'white', padding: isMobile ? '20px' : '24px 30px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: '15px', transition: 'transform 0.2s', cursor: 'default' };
   const labelStyle = { color: '#4b5563', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' };
   const amountStyle = { color: '#111827', fontSize: '28px', fontWeight: '900', letterSpacing: '-0.02em' };
-  const dropdownStyle = { padding: '10px 16px', borderRadius: '8px', border: '1px solid #d1d5db', color: '#374151', fontSize: '14px', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500', outline: 'none', transition: 'border-color 0.2s' };
+  const dropdownStyle = { padding: '10px 16px', borderRadius: '8px', border: '1px solid #d1d5db', color: '#374151', fontSize: '14px', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500', outline: 'none', transition: 'border-color 0.2s', width: isMobile ? '100%' : 'auto' };
+
+  const statusBadge = (inv, isOverdue) => {
+    if (inv.status === 'paid') {
+      return (
+        <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
+        </span>
+      );
+    } else if (inv.status === 'partially_paid') {
+      return (
+        <span style={{ backgroundColor: '#fef08a', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div> Partial
+        </span>
+      );
+    } else if (isOverdue) {
+      return (
+        <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#dc2626' }}></div> Overdue
+        </span>
+      );
+    }
+    return (
+      <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }}></div> Due Soon
+      </span>
+    );
+  };
+
+  const actionButtons = (inv) => (
+    <>
+      {inv.status !== 'paid' ? (
+        <button 
+          onClick={() => onManagePayment(inv)} 
+          style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 1px 2px rgba(16, 185, 129, 0.2)' }}
+        >
+          Receive Payment
+        </button>
+      ) : (
+        <button onClick={() => markAsUnpaid(inv)} style={{ backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '6px', padding: '5px 13px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+          Mark Unpaid
+        </button>
+      )}
+
+      <button onClick={() => onEdit(inv)} style={{ color: '#2563eb', border: 'none', background: 'none', cursor: 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>Edit</button>
+      
+      <button 
+        onClick={() => handleSendEmail(inv)} 
+        disabled={emailingInvoiceId === inv.id}
+        style={{ color: '#8b5cf6', border: 'none', background: 'none', cursor: emailingInvoiceId === inv.id ? 'wait' : 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} 
+        onMouseOver={(e) => e.target.style.textDecoration = 'underline'} 
+        onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+      >
+        {emailingInvoiceId === inv.id ? 'Sending...' : 'Send Email'}
+      </button>
+
+      <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>PDF</a>
+      <button onClick={() => onDelete(inv.id)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>Delete</button>
+    </>
+  );
 
   return (
     <div style={{ backgroundColor: 'transparent', position: 'relative', animation: 'fadeIn 0.3s ease-in-out' }}>
       
       {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '0', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-end', marginBottom: '30px' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#111827', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em' }}>Invoices</h2>
+          <h2 style={{ margin: 0, color: '#111827', fontSize: isMobile ? '24px' : '32px', fontWeight: '800', letterSpacing: '-0.02em' }}>Invoices</h2>
           <p style={{ margin: '5px 0 0 0', color: '#6b7280', fontSize: '15px' }}>Manage billings, track payments, and follow up on overdue balances.</p>
         </div>
-        <button onClick={onCreateNew} style={{ backgroundColor: '#047857', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(4, 120, 87, 0.2)', transition: 'transform 0.1s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+        <button onClick={onCreateNew} style={{ backgroundColor: '#047857', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(4, 120, 87, 0.2)', transition: 'transform 0.1s', width: isMobile ? '100%' : 'auto' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
           <span style={{ fontSize: '18px' }}>+</span> Create Invoice
         </button>
       </div>
 
       {/* SUMMARY CARDS */}
-      <div style={{ display: 'flex', gap: '30px', marginBottom: '35px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '20px' : '30px', marginBottom: '35px' }}>
         <div style={summaryBoxStyle} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={labelStyle}>Outstanding Balance</span>
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>⏳</div>
+            <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: '10px', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>⏳</div>
           </div>
           <div>
             <div style={amountStyle}>${unpaidTotal.toFixed(2)}</div>
@@ -155,7 +221,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
         <div style={summaryBoxStyle} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={labelStyle}>Collected Revenue</span>
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💵</div>
+            <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: '10px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💵</div>
           </div>
           <div>
             <div style={amountStyle}>${paidTotal.toFixed(2)}</div>
@@ -170,12 +236,12 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
       </div>
 
       {/* FILTER BAR */}
-      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '15px', marginBottom: '20px', backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
         <select defaultValue="" onChange={handleBatchAction} style={dropdownStyle}>
           <option value="" disabled>Batch actions</option>
           <option value="delete">Delete selected</option>
         </select>
-        <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '0 5px' }}></div>
+        {!isMobile && <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '0 5px' }}></div>}
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={dropdownStyle}>
           <option value="All">All Statuses</option>
           <option value="unpaid">Unpaid (Not Due)</option>
@@ -190,7 +256,43 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
         </select>
       </div>
 
-      {/* TABLE */}
+      {/* TABLE / MOBILE CARD LIST */}
+      {isMobile ? (
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          {filteredInvoices.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280', fontSize: '15px' }}>No invoices match your current filters.</div>
+          ) : filteredInvoices.map(inv => {
+            const isOverdue = new Date(inv.dueDate) < today && inv.status !== 'paid';
+            const isSelected = selectedInvoices.includes(inv.id);
+
+            return (
+              <div key={inv.id} style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', backgroundColor: isSelected ? '#ecfdf5' : 'transparent' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input type="checkbox" checked={isSelected} onChange={(e) => handleSelectOne(e, inv.id)} style={{ cursor: 'pointer', accentColor: '#047857', width: '16px', height: '16px' }}/>
+                    <div>
+                      <div style={{ color: '#111827', fontSize: '14px', fontWeight: '700' }}>{inv.invoiceNumber}</div>
+                      <div style={{ color: '#6b7280', fontSize: '12px' }}>{new Date(inv.createdAt).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  {statusBadge(inv, isOverdue)}
+                </div>
+
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{inv.customer ? `${inv.customer.firstName} ${inv.customer.lastName}` : 'Unknown'}</div>
+                  {inv.customer?.companyName && <div style={{ color: '#6b7280', fontSize: '12px' }}>{inv.customer.companyName}</div>}
+                </div>
+
+                <div style={{ color: '#111827', fontSize: '18px', fontWeight: '800', marginBottom: '12px' }}>${inv.totalAmount.toFixed(2)}</div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                  {actionButtons(inv)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
         <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
@@ -221,23 +323,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
                   <td style={{ padding: '16px 10px', color: '#111827', fontSize: '14px', fontWeight: '800' }}>${inv.totalAmount.toFixed(2)}</td>
                   
                   <td style={{ padding: '16px 10px' }}>
-                    {inv.status === 'paid' ? (
-                      <span style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669' }}></div> Paid
-                      </span>
-                    ) : inv.status === 'partially_paid' ? (
-                      <span style={{ backgroundColor: '#fef08a', color: '#065f46', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div> Partial
-                      </span>
-                    ) : isOverdue ? (
-                      <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#dc2626' }}></div> Overdue
-                      </span>
-                    ) : (
-                      <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }}></div> Due Soon
-                      </span>
-                    )}
+                    {statusBadge(inv, isOverdue)}
                   </td>
 
                   <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
@@ -283,6 +369,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 };

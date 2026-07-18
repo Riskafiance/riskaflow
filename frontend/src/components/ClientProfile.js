@@ -6,6 +6,13 @@ const ClientProfile = ({ clientId, onBack }) => {
   const [activeSubTab, setActiveSubTab] = useState('transactions'); 
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [noteContent, setNoteContent] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     axios.get(`https://riskaflow.onrender.com/api/customers/${clientId}`)
@@ -24,8 +31,8 @@ const ClientProfile = ({ clientId, onBack }) => {
   const openBalance = openInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   // STYLING HELPERS
-  const activeTabStyle = { padding: '16px 24px', borderBottom: '3px solid #2563eb', color: '#111827', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' };
-  const inactiveTabStyle = { padding: '16px 24px', borderBottom: '3px solid transparent', color: '#6b7280', cursor: 'pointer', fontSize: '15px', fontWeight: '500' };
+  const activeTabStyle = { padding: isMobile ? '14px 16px' : '16px 24px', borderBottom: '3px solid #2563eb', color: '#111827', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '13px' : '15px', whiteSpace: 'nowrap' };
+  const inactiveTabStyle = { padding: isMobile ? '14px 16px' : '16px 24px', borderBottom: '3px solid transparent', color: '#6b7280', cursor: 'pointer', fontSize: isMobile ? '13px' : '15px', fontWeight: '500', whiteSpace: 'nowrap' };
   const labelStyle = { display: 'block', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', fontWeight: '600', marginBottom: '6px' };
   const valueStyle = { color: '#111827', fontSize: '15px', fontWeight: '500', margin: '0 0 24px 0' };
 
@@ -54,24 +61,34 @@ const ClientProfile = ({ clientId, onBack }) => {
       </div>
 
       {/* TOP HERO CARD */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '30px 40px', display: 'flex', justifyContent: 'space-between', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6' }}>
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: isMobile ? '20px' : '30px 40px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6', gap: isMobile ? '20px' : '0' }}>
         
         {/* Profile Identity */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '25px', width: '30%' }}>
-           <div style={{ width: '85px', height: '85px', borderRadius: '50%', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', color: '#1e3a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', border: '2px solid #bfdbfe', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '16px' : '25px', width: isMobile ? '100%' : '30%' }}>
+           <div style={{ width: isMobile ? '64px' : '85px', height: isMobile ? '64px' : '85px', flexShrink: 0, borderRadius: '50%', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', color: '#1e3a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '22px' : '28px', fontWeight: 'bold', border: '2px solid #bfdbfe', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
              {initials}
            </div>
            <div>
-             <h2 style={{ margin: '0 0 4px 0', color: '#111827', fontSize: '26px', fontWeight: '800', letterSpacing: '-0.02em' }}>{client.firstName} {client.lastName}</h2>
+             <h2 style={{ margin: '0 0 4px 0', color: '#111827', fontSize: isMobile ? '20px' : '26px', fontWeight: '800', letterSpacing: '-0.02em' }}>{client.firstName} {client.lastName}</h2>
              {client.companyName && <span style={{ display: 'inline-block', backgroundColor: '#f3f4f6', color: '#4b5563', padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: '600', marginTop: '6px' }}>{client.companyName}</span>}
            </div>
         </div>
         
         {/* Quick Contact Info */}
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '35%', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb', padding: '0 40px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <span style={{ color: '#9ca3af' }}>✉</span>
-              <span style={{ color: '#374151', fontSize: '15px', fontWeight: '500' }}>{client.email}</span>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: isMobile ? '100%' : '35%',
+          borderLeft: isMobile ? 'none' : '1px solid #e5e7eb',
+          borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
+          borderTop: isMobile ? '1px solid #e5e7eb' : 'none',
+          borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+          padding: isMobile ? '16px 0' : '0 40px'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', minWidth: 0 }}>
+              <span style={{ color: '#9ca3af', flexShrink: 0 }}>✉</span>
+              <span style={{ color: '#374151', fontSize: '15px', fontWeight: '500', overflowWrap: 'anywhere' }}>{client.email}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ color: '#9ca3af' }}>☏</span>
@@ -80,12 +97,12 @@ const ClientProfile = ({ clientId, onBack }) => {
         </div>
 
         {/* Elevated Financial Summary */}
-        <div style={{ width: '25%', paddingLeft: '20px' }}>
+        <div style={{ width: isMobile ? '100%' : '25%', paddingLeft: isMobile ? '0' : '20px' }}>
           <div style={{ background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', padding: '20px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
              <h3 style={{ margin: '0 0 15px 0', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
                 Outstanding Balance
              </h3>
-             <p style={{ margin: 0, fontSize: '32px', fontWeight: '800', color: openBalance > 0 ? '#111827' : '#10b981', letterSpacing: '-0.02em' }}>
+             <p style={{ margin: 0, fontSize: isMobile ? '26px' : '32px', fontWeight: '800', color: openBalance > 0 ? '#111827' : '#10b981', letterSpacing: '-0.02em' }}>
                ${openBalance.toFixed(2)}
              </p>
           </div>
@@ -96,7 +113,7 @@ const ClientProfile = ({ clientId, onBack }) => {
       <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', overflow: 'hidden', minHeight: '400px' }}>
         
         {/* Modern Tab Navigation */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', padding: '0 10px' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', padding: '0 10px', overflowX: isMobile ? 'auto' : 'visible' }}>
           <div onClick={() => setActiveSubTab('transactions')} style={activeSubTab === 'transactions' ? activeTabStyle : inactiveTabStyle}>Transaction History</div>
           <div onClick={() => setActiveSubTab('details')} style={activeSubTab === 'details' ? activeTabStyle : inactiveTabStyle}>Full Profile Details</div>
           <div onClick={() => setActiveSubTab('notes')} style={activeSubTab === 'notes' ? activeTabStyle : inactiveTabStyle}>Internal Notes</div>
@@ -106,34 +123,55 @@ const ClientProfile = ({ clientId, onBack }) => {
         {activeSubTab === 'transactions' && (
           <div>
             {client.invoices && client.invoices.length > 0 ? (
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#ffffff', color: '#6b7280', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #f3f4f6' }}>
-                    <th style={{ padding: '16px 24px', fontWeight: '600' }}>Date</th>
-                    <th style={{ padding: '16px 24px', fontWeight: '600' }}>Invoice No.</th>
-                    <th style={{ padding: '16px 24px', fontWeight: '600' }}>Amount</th>
-                    <th style={{ padding: '16px 24px', fontWeight: '600' }}>Status</th>
-                    <th style={{ padding: '16px 24px', fontWeight: '600', textAlign: 'right' }}>Document</th>
-                  </tr>
-                </thead>
-                <tbody>
+              isMobile ? (
+                // MOBILE: stacked card layout instead of a table
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {client.invoices.map(inv => (
-                    <tr key={inv.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                      <td style={{ padding: '16px 24px', color: '#4b5563', fontSize: '14px', fontWeight: '500' }}>{new Date(inv.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                      <td style={{ padding: '16px 24px', color: '#111827', fontWeight: '700', fontSize: '14px' }}>{inv.invoiceNumber}</td>
-                      <td style={{ padding: '16px 24px', color: '#374151', fontWeight: '600', fontSize: '14px' }}>${inv.totalAmount.toFixed(2)}</td>
-                      <td style={{ padding: '16px 24px' }}>
-                        <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', backgroundColor: inv.status === 'paid' ? '#d1fae5' : inv.status === 'overdue' ? '#fee2e2' : '#fef3c7', color: inv.status === 'paid' ? '#065f46' : inv.status === 'overdue' ? '#991b1b' : '#92400e' }}>
+                    <div key={inv.id} style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <span style={{ color: '#111827', fontWeight: '700', fontSize: '15px' }}>{inv.invoiceNumber}</span>
+                        <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', backgroundColor: inv.status === 'paid' ? '#d1fae5' : inv.status === 'overdue' ? '#fee2e2' : '#fef3c7', color: inv.status === 'paid' ? '#065f46' : inv.status === 'overdue' ? '#991b1b' : '#92400e' }}>
                           {inv.status}
                         </span>
-                      </td>
-                      <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                        <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600', fontSize: '14px', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff' }}>Open PDF</a>
-                      </td>
-                    </tr>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '14px', color: '#4b5563' }}>
+                        <span>{new Date(inv.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                        <span style={{ color: '#374151', fontWeight: '600' }}>${inv.totalAmount.toFixed(2)}</span>
+                      </div>
+                      <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', color: '#2563eb', textDecoration: 'none', fontWeight: '600', fontSize: '13px', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff' }}>Open PDF</a>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              ) : (
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#ffffff', color: '#6b7280', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #f3f4f6' }}>
+                      <th style={{ padding: '16px 24px', fontWeight: '600' }}>Date</th>
+                      <th style={{ padding: '16px 24px', fontWeight: '600' }}>Invoice No.</th>
+                      <th style={{ padding: '16px 24px', fontWeight: '600' }}>Amount</th>
+                      <th style={{ padding: '16px 24px', fontWeight: '600' }}>Status</th>
+                      <th style={{ padding: '16px 24px', fontWeight: '600', textAlign: 'right' }}>Document</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {client.invoices.map(inv => (
+                      <tr key={inv.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <td style={{ padding: '16px 24px', color: '#4b5563', fontSize: '14px', fontWeight: '500' }}>{new Date(inv.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                        <td style={{ padding: '16px 24px', color: '#111827', fontWeight: '700', fontSize: '14px' }}>{inv.invoiceNumber}</td>
+                        <td style={{ padding: '16px 24px', color: '#374151', fontWeight: '600', fontSize: '14px' }}>${inv.totalAmount.toFixed(2)}</td>
+                        <td style={{ padding: '16px 24px' }}>
+                          <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', backgroundColor: inv.status === 'paid' ? '#d1fae5' : inv.status === 'overdue' ? '#fee2e2' : '#fef3c7', color: inv.status === 'paid' ? '#065f46' : inv.status === 'overdue' ? '#991b1b' : '#92400e' }}>
+                            {inv.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                          <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600', fontSize: '14px', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff' }}>Open PDF</a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )
             ) : (
               <div style={{ padding: '60px 20px', textAlign: 'center' }}>
                 <p style={{ color: '#6b7280', fontSize: '15px', margin: 0 }}>No invoices have been created for this client yet.</p>
@@ -144,7 +182,7 @@ const ClientProfile = ({ clientId, onBack }) => {
 
         {/* TAB 2: DETAILED GRID */}
         {activeSubTab === 'details' && (
-          <div style={{ padding: '40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '10px' }}>
+          <div style={{ padding: isMobile ? '20px' : '40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '10px' }}>
             <div><span style={labelStyle}>Full Legal Name</span><p style={valueStyle}>{client.title || ''} {client.firstName} {client.middleName || ''} {client.lastName} {client.suffix || ''}</p></div>
             <div><span style={labelStyle}>Company Name</span><p style={valueStyle}>{client.companyName || '—'}</p></div>
             <div><span style={labelStyle}>Display Name</span><p style={valueStyle}>{client.displayName || '—'}</p></div>
@@ -160,8 +198,8 @@ const ClientProfile = ({ clientId, onBack }) => {
 
         {/* TAB 3: NOTES */}
         {activeSubTab === 'notes' && (
-          <div style={{ padding: '40px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ padding: isMobile ? '20px' : '40px' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '0', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '20px' }}>
               <div>
                 <h3 style={{ margin: 0, color: '#111827', fontSize: '20px', fontWeight: '700' }}>Internal Notes</h3>
                 <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>Secure, private notes regarding this client account.</p>
@@ -175,7 +213,7 @@ const ClientProfile = ({ clientId, onBack }) => {
 
             <div style={{ backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', minHeight: '200px', display: 'flex', flexDirection: 'column' }}>
               {isEditingNotes ? (
-                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ padding: isMobile ? '16px' : '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <textarea value={noteContent} onChange={(e) => setNoteContent(e.target.value)} style={{ width: '100%', flexGrow: 1, minHeight: '150px', padding: '16px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', fontSize: '15px', lineHeight: '1.6', outlineColor: '#2563eb' }} placeholder="Type your internal notes here..." />
                   <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
                     <button onClick={handleSaveNote} style={{ backgroundColor: '#10b981', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>

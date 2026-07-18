@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function ManagePayment({ invoice, onBack, onSuccess }) {
@@ -8,6 +8,13 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
   const [customAmount, setCustomAmount] = useState(remainingBalance.toFixed(2));
   const [isProcessing, setIsProcessing] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 1. Manually Record Cash/Check
   const handleRecordManual = async () => {
@@ -68,9 +75,9 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
     <div style={{ animation: 'fadeIn 0.3s ease-in-out', maxWidth: '900px', margin: '0 auto' }}>
       
       {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '0', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', marginBottom: '30px' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em' }}>
+          <h2 style={{ margin: 0, color: '#0f172a', fontSize: isMobile ? '22px' : '28px', fontWeight: '800', letterSpacing: '-0.02em' }}>
             Invoice {invoice.invoiceNumber}
           </h2>
           <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '15px' }}>
@@ -79,7 +86,7 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
         </div>
         <button 
           onClick={onBack} 
-          style={{ padding: '10px 20px', backgroundColor: 'transparent', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+          style={{ padding: '10px 20px', backgroundColor: 'transparent', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: isMobile ? '100%' : 'auto' }}
           onMouseOver={(e) => { e.target.style.backgroundColor = '#f1f5f9'; e.target.style.color = '#0f172a'; }}
           onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#475569'; }}
         >
@@ -87,7 +94,7 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
         
         {/* Balance Overview Card */}
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -105,7 +112,7 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
             <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '18px' }}>Remaining Due</span>
-            <span style={{ color: '#ef4444', fontWeight: '900', fontSize: '28px' }}>${remainingBalance.toFixed(2)}</span>
+            <span style={{ color: '#ef4444', fontWeight: '900', fontSize: isMobile ? '24px' : '28px' }}>${remainingBalance.toFixed(2)}</span>
           </div>
         </div>
 
@@ -148,11 +155,11 @@ function ManagePayment({ invoice, onBack, onSuccess }) {
             {generatedLink && (
               <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px dashed #bfdbfe', animation: 'fadeIn 0.3s' }}>
                 <p style={{ margin: '0 0 10px 0', fontSize: '12px', fontWeight: '800', color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Link Generated:</p>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="text" readOnly value={generatedLink} style={{ flex: 1, padding: '10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #93c5fd', backgroundColor: 'white', color: '#475569', outline: 'none' }} />
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '8px' }}>
+                  <input type="text" readOnly value={generatedLink} style={{ flex: 1, padding: '10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #93c5fd', backgroundColor: 'white', color: '#475569', outline: 'none', width: isMobile ? '100%' : 'auto', boxSizing: 'border-box' }} />
                   <button 
                     onClick={() => { navigator.clipboard.writeText(generatedLink); alert("Link copied to clipboard!"); }}
-                    style={{ padding: '10px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                    style={{ padding: '10px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}
                   >
                     Copy
                   </button>

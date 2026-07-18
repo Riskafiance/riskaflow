@@ -57,11 +57,23 @@ const SettingsTab = () => {
 
   // 🔥 Handle Stripe Connect Onboarding
   const handleStripeConnect = () => {
+    // Open the tab immediately (during the click), before any async work,
+    // so mobile browsers don't block it as a popup.
+    const stripeTab = window.open('', '_blank');
+
     axios.post('https://riskaflow.onrender.com/api/stripe/onboard', { email: auth.currentUser.email })
       .then(res => {
-        window.open(res.data.url, '_blank'); // Opens Stripe's secure portal in a NEW tab
+        if (stripeTab) {
+          stripeTab.location.href = res.data.url; // Redirect the already-open tab to Stripe
+        } else {
+          // Popup blocked entirely (rare) — fall back to same-tab navigation
+          window.location.href = res.data.url;
+        }
       })
-      .catch(err => alert("Failed to connect to Stripe. Please try again."));
+      .catch(err => {
+        if (stripeTab) stripeTab.close();
+        alert("Failed to connect to Stripe. Please try again.");
+      });
   };
 
   const handleSubmit = (e) => {

@@ -7,6 +7,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   
   const [emailingInvoiceId, setEmailingInvoiceId] = useState(null);
+  const [remindingInvoiceId, setRemindingInvoiceId] = useState(null); // 🔥 NEW: Track reminder loading state
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -99,6 +100,29 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
       });
   };
 
+  // 🔥 NEW: Function to manually trigger the reminder email
+  const handleSendReminder = (inv) => {
+    if (!inv.customer || !inv.customer.email) {
+      alert("This customer does not have an email address saved in their profile!");
+      return;
+    }
+
+    setRemindingInvoiceId(inv.id);
+
+    axios.post(`https://riskaflow.onrender.com/api/invoices/${inv.id}/remind`)
+      .then(() => {
+        alert(`Reminder sent successfully to ${inv.customer.email}!`);
+        if (refreshData) refreshData(); // Refresh to show the new 'lastRemindedAt' date
+      })
+      .catch(err => {
+        const errorMsg = err.response?.data?.error || "Failed to send reminder.";
+        alert(errorMsg);
+      })
+      .finally(() => {
+        setRemindingInvoiceId(null);
+      });
+  };
+
   let unpaidTotal = 0;
   let overdueTotal = 0;
   let paidTotal = 0;
@@ -164,6 +188,19 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
       ) : (
         <button onClick={() => markAsUnpaid(inv)} style={{ backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '6px', padding: '5px 13px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
           Mark Unpaid
+        </button>
+      )}
+
+      {/* 🔥 NEW: Added Send Reminder Button (only shows for unpaid invoices) */}
+      {inv.status !== 'paid' && (
+        <button 
+          onClick={() => handleSendReminder(inv)} 
+          disabled={remindingInvoiceId === inv.id}
+          style={{ color: '#d97706', border: 'none', background: 'none', cursor: remindingInvoiceId === inv.id ? 'wait' : 'pointer', padding: '0', fontWeight: '600', fontSize: '13px', marginLeft: isMobile ? '0' : '8px' }} 
+          onMouseOver={(e) => e.target.style.textDecoration = 'underline'} 
+          onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+        >
+          {remindingInvoiceId === inv.id ? 'Sending...' : '🔔 Remind'}
         </button>
       )}
 
@@ -283,7 +320,15 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
                   {inv.customer?.companyName && <div style={{ color: '#6b7280', fontSize: '12px' }}>{inv.customer.companyName}</div>}
                 </div>
 
-                <div style={{ color: '#111827', fontSize: '18px', fontWeight: '800', marginBottom: '12px' }}>${inv.totalAmount.toFixed(2)}</div>
+                <div style={{ color: '#111827', fontSize: '18px', fontWeight: '800', marginBottom: '4px' }}>${inv.totalAmount.toFixed(2)}</div>
+                
+                {/* 🔥 NEW: Mobile Reminder Timestamp */}
+                {inv.lastReminderSentAt && inv.status !== 'paid' && (
+                  <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '12px', fontStyle: 'italic' }}>
+                    Last reminded: {new Date(inv.lastReminderSentAt).toLocaleDateString()}
+                  </div>
+                )}
+                {!inv.lastReminderSentAt && <div style={{ marginBottom: '12px' }}></div>}
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
                   {actionButtons(inv)}
@@ -320,13 +365,21 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
                     <div style={{ color: '#111827', fontSize: '14px', fontWeight: '600' }}>{inv.customer ? `${inv.customer.firstName} ${inv.customer.lastName}` : 'Unknown'}</div>
                     {inv.customer?.companyName && <div style={{ color: '#6b7280', fontSize: '12px' }}>{inv.customer.companyName}</div>}
                   </td>
-                  <td style={{ padding: '16px 10px', color: '#111827', fontSize: '14px', fontWeight: '800' }}>${inv.totalAmount.toFixed(2)}</td>
+                  <td style={{ padding: '16px 10px' }}>
+                    <div style={{ color: '#111827', fontSize: '14px', fontWeight: '800' }}>${inv.totalAmount.toFixed(2)}</div>
+                    {/* 🔥 NEW: Desktop Reminder Timestamp */}
+                    {inv.lastReminderSentAt && inv.status !== 'paid' && (
+                      <div style={{ color: '#9ca3af', fontSize: '11px', marginTop: '2px', fontStyle: 'italic' }}>
+                        Reminded: {new Date(inv.lastReminderSentAt).toLocaleDateString()}
+                      </div>
+                    )}
+                  </td>
                   
                   <td style={{ padding: '16px 10px' }}>
                     {statusBadge(inv, isOverdue)}
                   </td>
 
-                  <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                  <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
                     
                     {/* PRIMARY ACTION BUTTONS */}
                     {inv.status !== 'paid' ? (
@@ -344,21 +397,9 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
 
                     <div style={{ width: '1px', height: '16px', backgroundColor: '#e5e7eb' }}></div>
 
-                    {/* SECONDARY TEXT LINKS */}
-                    <button onClick={() => onEdit(inv)} style={{ color: '#2563eb', border: 'none', background: 'none', cursor: 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>Edit</button>
-                    
-                    <button 
-                      onClick={() => handleSendEmail(inv)} 
-                      disabled={emailingInvoiceId === inv.id}
-                      style={{ color: '#8b5cf6', border: 'none', background: 'none', cursor: emailingInvoiceId === inv.id ? 'wait' : 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} 
-                      onMouseOver={(e) => e.target.style.textDecoration = 'underline'} 
-                      onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                    >
-                      {emailingInvoiceId === inv.id ? 'Sending...' : 'Send Email'}
-                    </button>
+                    {/* SECONDARY TEXT LINKS (Using the helper function) */}
+                    {actionButtons(inv)}
 
-                    <a href={`https://riskaflow.onrender.com/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>PDF</a>
-                    <button onClick={() => onDelete(inv.id)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', padding: '0', fontWeight: '600', fontSize: '13px' }} onMouseOver={(e) => e.target.style.textDecoration = 'underline'} onMouseOut={(e) => e.target.style.textDecoration = 'none'}>Delete</button>
                   </td>
                 </tr>
               )

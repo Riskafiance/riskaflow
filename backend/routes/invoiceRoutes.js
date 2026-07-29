@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const PDFDocument = require('pdfkit');
 const nodemailer = require('nodemailer');
+const { sendInvoiceReminder } = require('../utils/email'); // 🔥 Added email utility
 
 // 🔥 Secure Key via .env
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); 
@@ -343,7 +344,7 @@ router.post('/:id/send-email', express.json(), async (req, res) => {
 
       const mailOptions = {
         from: `"${bizName}" <riskas.finances@gmail.com>`, 
-        to: toEmail || invoice.customer.email,           
+        to: toEmail || invoice.customer.email,            
         subject: subject || `Invoice ${invoice.invoiceNumber} from ${bizName}`, 
         text: `Please find your attached invoice. If paying online: ${finalPaymentUrl}`,
         html: `
@@ -454,6 +455,44 @@ router.post('/:id/mark-paid', express.json(), async (req, res) => {
   } catch (error) {
     console.error("Payment Success Error:", error);
     res.status(500).json({ error: "Failed to process success callback." });
+  }
+});
+
+// POST: Send a manual invoice reminder
+router.post('/:id/remind', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Find the invoice, customer, and user
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: id },
+      include: {
+        customer: true,
+        user: true,
+      },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    if (!invoice.customer || !invoice.customer.email) {
+      return res.status(400).json({ error: 'Customer has no email address on file' });
+    }
+
+    // 2. Send the email
+    await sendInvoiceReminder(invoice, invoice.customer, invoice.user);
+
+    // 3. Update the timestamp in the database
+    const updatedInvoice = await prisma.invoice.update({
+      where: { id: id },
+      data: { lastReminderSentAt: new Date() },
+    });
+
+    res.status(200).json({ message: 'Reminder sent successfully!', invoice: updatedInvoice });
+  } catch (error) {
+    console.error('Error sending manual reminder:', error);
+    res.status(500).json({ error: 'Failed to send reminder' });
   }
 });
 

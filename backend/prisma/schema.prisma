@@ -98,6 +98,8 @@ model Invoice {
   customerNote  String? 
   createdAt     DateTime @default(now())
   
+  lastReminderSentAt DateTime?
+
   // SaaS Link: Which user owns this invoice?
   userId        String
   user          User     @relation(fields: [userId], references: [id])

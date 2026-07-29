@@ -381,23 +381,7 @@ const InvoicesTab = ({ invoices, accounts = [], onCreateNew, onEdit, onDelete, r
 
                   <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
                     
-                    {/* PRIMARY ACTION BUTTONS */}
-                    {inv.status !== 'paid' ? (
-                      <button 
-                        onClick={() => onManagePayment(inv)} 
-                        style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 1px 2px rgba(16, 185, 129, 0.2)' }}
-                      >
-                        Receive Payment
-                      </button>
-                    ) : (
-                      <button onClick={() => markAsUnpaid(inv)} style={{ backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '6px', padding: '5px 13px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                        Mark Unpaid
-                      </button>
-                    )}
-
-                    <div style={{ width: '1px', height: '16px', backgroundColor: '#e5e7eb' }}></div>
-
-                    {/* SECONDARY TEXT LINKS (Using the helper function) */}
+                    {/* ALL ACTION BUTTONS (Using the helper function) */}
                     {actionButtons(inv)}
 
                   </td>
